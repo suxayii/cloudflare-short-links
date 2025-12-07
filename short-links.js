@@ -3,7 +3,7 @@ const CONFIG = {
   TITLE: "短链服务"
 };
 
-// --- HTML 页面 (保持 V24.1 完美版 UI) ---
+// --- HTML 页面 ---
 const html = `
 <!DOCTYPE html>
 <html>
@@ -12,6 +12,7 @@ const html = `
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>${CONFIG.TITLE}</title>
   <style>
+    /* 全局基础 */
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f4f6; margin: 0; color: #333; -webkit-tap-highlight-color: transparent; }
     * { box-sizing: border-box; }
     .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -35,6 +36,7 @@ const html = `
     th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; }
     td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; word-wrap: break-word; }
     .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #eff6ff; color: #2563eb; font-family: monospace; }
+    /* 修复：找回了 visits-badge 样式 */
     .visits-badge { background: #fff7ed; color: #c2410c; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 1px solid #ffedd5; }
     .note-text { color: #4b5563; font-size: 13px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .note-empty { color: #d1d5db; font-size: 12px; font-style: italic; }
@@ -63,6 +65,9 @@ const html = `
     .count-badge { background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 12px; }
     .toggle-icon { display: inline-block; width: 16px; text-align: center; transition: transform 0.2s; }
     .open .toggle-icon { transform: rotate(90deg); }
+    .loading { text-align: center; color: #999; padding: 20px; }
+    .login-box { max-width: 320px; margin: 0 auto; }
+
     @media (max-width: 640px) {
         .container { padding: 10px; align-items: flex-start; }
         .card, .admin-card { padding: 20px 15px; border-radius: 12px; }
@@ -110,7 +115,7 @@ const html = `
     <div id="adminPanel">
       <div class="admin-card">
         <div class="admin-header">
-          <h2 style="margin:0; font-size:18px;">📊 链接管理 (D1版)</h2>
+          <h2 style="margin:0; font-size:18px;">📊 链接管理</h2>
           <div class="header-actions">
             <button onclick="refreshPage()" class="btn-xs" style="background:#eff6ff; color:#1d4ed8;">↻ 刷新</button>
             <button onclick="logout()" class="btn-xs" style="background:#f3f4f6; color:#374151;">退出</button>
@@ -129,7 +134,7 @@ const html = `
           </thead>
           <tbody id="tableBody"></tbody>
         </table>
-        <div id="tableLoading" style="text-align:center; padding:30px; color:#999; display:none;">加载中...</div>
+        <div id="tableLoading" class="loading" style="display:none;">加载中...</div>
         <div id="pagination" class="pagination-bar" style="display:none;">
             <div style="font-size:13px; color:#666;">第 <b id="pageNum">1</b> 页</div>
             <div style="display:flex; gap:10px;">
@@ -167,7 +172,10 @@ const html = `
     if (path === '/admin') { document.getElementById('homeView').style.display = 'none'; document.getElementById('adminView').style.display = 'flex'; setTimeout(checkLogin, 50); }
     async function generate() {
       const urlInput = document.getElementById('longUrl').value.trim(); const btn = document.getElementById('btn'); const errorDiv = document.getElementById('error'); const resultDiv = document.getElementById('result');
-      if (!urlInput) return; if (!urlInput.startsWith('http')) { errorDiv.innerText = '网址需包含 http:// 或 https://'; errorDiv.style.display = 'block'; return; }
+      if (!urlInput) return; 
+      // 修复3: 严格的 URL 校验
+      try { new URL(urlInput); } catch(e) { errorDiv.innerText = '请输入包含 http:// 或 https:// 的完整网址'; errorDiv.style.display = 'block'; return; }
+      
       btn.innerText = '生成中...'; btn.disabled = true; errorDiv.style.display = 'none'; resultDiv.style.display = 'none';
       try {
         const res = await fetch('/api/create?url=' + encodeURIComponent(urlInput));
@@ -189,7 +197,6 @@ const html = `
       const loading = document.getElementById('tableLoading'); const tbody = document.getElementById('tableBody'); const pagination = document.getElementById('pagination');
       tbody.innerHTML = ''; loading.style.display = 'block'; pagination.style.display = 'none';
       try {
-        // D1 SQL 分页: LIMIT x OFFSET y
         const offset = pageIndex * pageSize;
         const url = \`/api/admin/list?\${getAuthParams()}&limit=\${pageSize}&offset=\${offset}&t=\${Date.now()}\`;
         const res = await fetch(url);
@@ -199,7 +206,7 @@ const html = `
         currentPage = pageIndex;
         document.getElementById('pageNum').innerText = currentPage + 1;
         document.getElementById('btnPrev').disabled = (currentPage === 0);
-        document.getElementById('btnNext').disabled = (data.list.length < pageSize); // 如果返回数据少于pageSize，说明没下一页了
+        document.getElementById('btnNext').disabled = (data.list.length < pageSize);
         pagination.style.display = 'flex';
       } catch (e) { alert('加载失败: ' + e.message); } finally { loading.style.display = 'none'; }
     }
@@ -214,7 +221,7 @@ const html = `
           <td><div style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="\${item.url}">\${item.url}</div></td>
           <td>\${item.note ? \`<span class="note-text">\${item.note}</span>\` : \`<span class="note-empty">无备注</span>\`}</td>
           <td><span class="date-text">\${item.created}</span></td>
-          <td><span class="visits-badge">🔥 \${item.visits}</span></td>
+          <td style="text-align:center;"><span class="visits-badge">🔥 \${item.visits}</span></td>
           <td>
             <div class="action-btns">
               <button class="btn-emerald btn-xs" onclick="copyShortLink(this, '\${item.id}')">📄 复制</button>
@@ -229,8 +236,6 @@ const html = `
       tbody.innerHTML = html;
     }
     function copyShortLink(btn, id) { const shortUrl = window.location.origin + "/" + id; navigator.clipboard.writeText(shortUrl).then(() => { const originalText = btn.innerText; btn.innerText = "✅"; setTimeout(() => btn.innerText = originalText, 2000); }).catch(err => alert("复制失败")); }
-    
-    // --- D1 统计数据处理 ---
     async function showStats(id) {
         document.getElementById('statsModal').style.display = 'flex';
         document.getElementById('modalTitle').innerText = '访问详情: ' + id;
@@ -241,7 +246,6 @@ const html = `
             if (res.status === 401) { logout(); return; }
             const rawLogs = await res.json();
             if(!Array.isArray(rawLogs)) throw new Error("Err");
-            // 聚合逻辑 (D1 返回的是扁平数据)
             const grouped = {};
             rawLogs.forEach(log => {
                 const ip = log.ip;
@@ -251,7 +255,6 @@ const html = `
                 if (log.created_at > grouped[ip].latest) grouped[ip].latest = log.created_at;
                 grouped[ip].history.push(timeStr); 
             });
-            // 排序
             const sortedGroups = Object.values(grouped).sort((a, b) => b.latest - a.latest);
             renderGroupedStats(sortedGroups);
         } catch(e) { document.getElementById('statsBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">加载失败或无数据</td></tr>'; } 
@@ -276,8 +279,6 @@ const html = `
     }
     function toggleHistory(rowId, btn) { const row = document.getElementById(rowId); if (row.style.display === 'table-row') { row.style.display = 'none'; btn.classList.remove('open'); } else { row.style.display = 'table-row'; btn.classList.add('open'); } }
     function closeModal(e) { if (e && e.target !== document.getElementById('statsModal') && e.target.className !== 'modal-close') return; document.getElementById('statsModal').style.display = 'none'; }
-
-    // --- 数据操作 ---
     async function deleteItem(id) { if (!confirm('确认删除?')) return; const res = await fetch(\`/api/admin/delete?id=\${id}&\${getAuthParams()}\`); if (res.ok) refreshPage(); else alert('删除失败'); }
     async function editItem(id) { const newUrl = prompt('新跳转链接:', ''); if (!newUrl) return; const res = await fetch('/api/admin/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, url: newUrl, ...JSON.parse(localStorage.getItem('admin_auth')) }) }); if (res.ok) refreshPage(); else alert('修改失败'); }
     async function editNote(id, oldNote) { const newNote = prompt('设置备注:', oldNote); if (newNote === null) return; const res = await fetch('/api/admin/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, note: newNote, ...JSON.parse(localStorage.getItem('admin_auth')) }) }); if (res.ok) refreshPage(); else alert('设置失败'); }
@@ -291,101 +292,67 @@ export default {
     const url = new URL(request.url); const path = url.pathname;
     const apiHeaders = { "Content-Type": "application/json", "Cache-Control": "no-store, no-cache, max-age=0" };
 
-    // 1. 静态页面
     if (path === "/" || path === "/admin") return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
 
-    // 2. 创建短链 (D1)
     if (path === "/api/create") {
-      const targetUrl = url.searchParams.get("url"); if (!targetUrl || !targetUrl.startsWith("http")) return new Response(JSON.stringify({error:"Invalid URL"}));
+      const targetUrl = url.searchParams.get("url"); 
+      // 修复3: 后端也加一道校验
+      try { new URL(targetUrl); } catch(e) { return new Response(JSON.stringify({error:"Invalid URL"})); }
+      
       const part1 = Math.random().toString(36).substring(2); const part2 = Math.random().toString(36).substring(2); const shortId = (part1 + part2).substring(0, 9); 
       const now = Date.now();
       
-      // INSERT into D1
+      // 修复1: 检查 ID 是否重复 (防碰撞)
+      const exists = await env.DB.prepare('SELECT id FROM links WHERE id = ?').bind(shortId).first();
+      if (exists) return new Response(JSON.stringify({error:"ID Collision, please retry"}), { status: 500 });
+
       await env.DB.prepare('INSERT INTO links (id, url, created_at) VALUES (?, ?, ?)').bind(shortId, targetUrl, now).run();
-      
       return new Response(JSON.stringify({ short_id: shortId, short_url: `${url.origin}/${shortId}`, original_url: targetUrl }), { headers: apiHeaders });
     }
 
     const checkAuth = (u, p) => (env.ADMIN_USER && env.ADMIN_PASSWORD && u === env.ADMIN_USER && p === env.ADMIN_PASSWORD);
 
-    // 3. 统计数据 (D1)
+    // 修复2: 提高统计上限到 1000 条
     if (path === "/api/stats") {
       const id = url.searchParams.get("id"); const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
       if (!checkAuth(u, p)) return new Response("Auth Failed", { status: 401 });
-      
-      // Select visits
-      const results = await env.DB.prepare('SELECT * FROM visits WHERE link_id = ? ORDER BY created_at DESC LIMIT 200').bind(id).all();
+      const results = await env.DB.prepare('SELECT * FROM visits WHERE link_id = ? ORDER BY created_at DESC LIMIT 1000').bind(id).all();
       return new Response(JSON.stringify(results.results), { headers: apiHeaders });
     }
 
-    // 4. 管理列表 (D1 聚合查询)
     if (path === "/api/admin/list") {
       const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
       if (!checkAuth(u, p)) return new Response("Auth Failed", { status: 401 });
-      
       const limit = parseInt(url.searchParams.get("limit")) || 10;
       const offset = parseInt(url.searchParams.get("offset")) || 0;
-
-      // 复杂的 SQL：关联查询 links 和 visits count
-      const query = `
-        SELECT l.id, l.url, l.note, l.created_at, COUNT(v.id) as visits 
-        FROM links l 
-        LEFT JOIN visits v ON l.id = v.link_id 
-        GROUP BY l.id 
-        ORDER BY l.created_at DESC 
-        LIMIT ? OFFSET ?
-      `;
+      const query = `SELECT l.id, l.url, l.note, l.created_at, COUNT(v.id) as visits FROM links l LEFT JOIN visits v ON l.id = v.link_id GROUP BY l.id ORDER BY l.created_at DESC LIMIT ? OFFSET ?`;
       const { results } = await env.DB.prepare(query).bind(limit, offset).all();
-      
-      // 格式化时间
-      const formatted = results.map(item => ({
-          ...item,
-          created: new Date(item.created_at).toISOString().split('T')[0]
-      }));
-
+      const formatted = results.map(item => ({ ...item, created: new Date(item.created_at).toISOString().split('T')[0] }));
       return new Response(JSON.stringify({ list: formatted }), { headers: apiHeaders });
     }
 
-    // 5. 删除 (D1)
     if (path === "/api/admin/delete") {
       const id = url.searchParams.get("id"); const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
       if (!checkAuth(u, p)) return new Response("Auth Failed", { status: 401 });
-      
-      await env.DB.batch([
-          env.DB.prepare('DELETE FROM links WHERE id = ?').bind(id),
-          env.DB.prepare('DELETE FROM visits WHERE link_id = ?').bind(id)
-      ]);
+      await env.DB.batch([ env.DB.prepare('DELETE FROM links WHERE id = ?').bind(id), env.DB.prepare('DELETE FROM visits WHERE link_id = ?').bind(id) ]);
       return new Response("OK", { status: 200, headers: apiHeaders });
     }
 
-    // 6. 修改 (D1)
     if (path === "/api/admin/edit") {
       if (request.method !== "POST") return new Response("405");
       try {
         const body = await request.json();
         if (!checkAuth(body.u, body.p)) return new Response("Auth Failed", { status: 401 });
-        
-        if (body.note !== undefined) {
-            await env.DB.prepare('UPDATE links SET note = ? WHERE id = ?').bind(body.note, body.id).run();
-        } else if (body.url) {
-            await env.DB.prepare('UPDATE links SET url = ? WHERE id = ?').bind(body.url, body.id).run();
-        }
+        if (body.note !== undefined) { await env.DB.prepare('UPDATE links SET note = ? WHERE id = ?').bind(body.note, body.id).run(); } 
+        else if (body.url) { await env.DB.prepare('UPDATE links SET url = ? WHERE id = ?').bind(body.url, body.id).run(); }
         return new Response("OK", { status: 200, headers: apiHeaders });
       } catch(e) { return new Response("Error", { status: 500 }); }
     }
 
-    // 7. 核心跳转 (D1 读取 + 异步写入日志)
     if (path.length > 1 && !path.startsWith("/api/")) {
       const shortId = path.substring(1);
-      
-      // 先查
       const link = await env.DB.prepare('SELECT url FROM links WHERE id = ?').bind(shortId).first();
-      
-      if (link) {
-        // 异步写日志 (不阻塞跳转)
-        ctx.waitUntil(recordVisit(env, shortId, request));
-        return Response.redirect(link.url, 302);
-      }
+      if (link) { ctx.waitUntil(recordVisit(env, shortId, request)); return Response.redirect(link.url, 302); }
     }
     return new Response("404 Not Found", { status: 404 });
   },
@@ -395,11 +362,7 @@ async function recordVisit(env, shortId, request) {
   try {
     const ip = request.headers.get("CF-Connecting-IP") || "Unknown";
     const now = Date.now();
-    const country = request.cf?.country || ""; 
-    const city = request.cf?.city || ""; 
-    let locationStr = country; if (city) locationStr += ` - ${city}`; if (!locationStr) locationStr = "Unknown";
-    
-    // Insert into D1
+    const country = request.cf?.country || ""; const city = request.cf?.city || ""; let locationStr = country; if (city) locationStr += ` - ${city}`; if (!locationStr) locationStr = "Unknown";
     await env.DB.prepare('INSERT INTO visits (link_id, ip, region, created_at) VALUES (?, ?, ?, ?)').bind(shortId, ip, locationStr, now).run();
   } catch (e) { console.log(e); }
 }
