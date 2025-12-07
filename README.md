@@ -1,4 +1,4 @@
-# 🔗 Suxia Short Link (Serverless Edition)
+# 🔗 Short Link (Serverless Edition)
 
 一个基于 **Cloudflare Workers** + **KV Storage** 构建的轻量级、高性能、企业级短链接系统。
 
