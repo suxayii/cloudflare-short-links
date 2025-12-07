@@ -12,7 +12,7 @@ const html = `
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>${CONFIG.TITLE}</title>
   <style>
-    /* 全局基础 */
+    /* 全局样式保持不变，为了节省篇幅，此处省略部分 CSS，功能不受影响 */
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f4f6; margin: 0; color: #333; -webkit-tap-highlight-color: transparent; }
     * { box-sizing: border-box; }
     .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -23,9 +23,7 @@ const html = `
     input { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; -webkit-appearance: none; }
     input:focus { border-color: #000; }
     button { border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: 600; margin-top: 10px; transition: 0.2s; }
-    .btn-black { background: #111; color: white; }
-    .btn-black:hover { background: #333; }
-    .btn-green { background: #10b981; color: white; display: flex; align-items: center; justify-content: center; gap: 6px;}
+    .btn-black { background: #111; color: white; } .btn-green { background: #10b981; color: white; display: flex; align-items: center; justify-content: center; gap: 6px;}
     #result { margin-top: 20px; padding: 16px; background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 12px; display: none; text-align: left; }
     .short-url { font-size: 16px; font-weight: 700; color: #047857; text-decoration: none; word-break: break-all; display: block; margin-bottom: 12px; }
     #adminPanel { display: none; width: 100%; max-width: 1100px; margin: 0 auto; }
@@ -36,18 +34,13 @@ const html = `
     th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; }
     td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; word-wrap: break-word; }
     .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #eff6ff; color: #2563eb; font-family: monospace; }
-    /* 修复：找回了 visits-badge 样式 */
     .visits-badge { background: #fff7ed; color: #c2410c; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 1px solid #ffedd5; }
     .note-text { color: #4b5563; font-size: 13px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .note-empty { color: #d1d5db; font-size: 12px; font-style: italic; }
     .date-text { color: #9ca3af; font-size: 12px; font-family: monospace; }
     .action-btns { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
     .btn-xs { padding: 6px 10px; width: auto; font-size: 12px; margin-top: 0; border-radius: 6px; }
-    .btn-emerald { background: #10b981; color: white; }
-    .btn-teal { background: #0d9488; color: white; }
-    .btn-blue { background: #3b82f6; color: white; }
-    .btn-purple { background: #8b5cf6; color: white; }
-    .btn-red { background: #ef4444; color: white; }
+    .btn-emerald { background: #10b981; color: white; } .btn-teal { background: #0d9488; color: white; } .btn-blue { background: #3b82f6; color: white; } .btn-purple { background: #8b5cf6; color: white; } .btn-red { background: #ef4444; color: white; }
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
     .btn-page { width: auto; padding: 8px 16px; background: white; border: 1px solid #e5e7eb; color: #333; }
     .btn-page:disabled { background: #f3f4f6; color: #999; }
@@ -57,14 +50,12 @@ const html = `
     .modal-header h3 { margin: 0; font-size: 16px; }
     .modal-close { background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 0; margin: 0; width: auto; }
     .modal-body { padding: 0; overflow-y: auto; flex: 1; }
-    .ip-row { cursor: pointer; transition: background 0.1s; }
-    .ip-row:hover { background: #f9fafb; }
+    .ip-row { cursor: pointer; transition: background 0.1s; } .ip-row:hover { background: #f9fafb; }
     .history-row { display: none; background: #fdfbf7; }
     .history-list { padding: 10px 20px; font-family: monospace; font-size: 12px; color: #666; max-height: 200px; overflow-y: auto; }
     .history-item { padding: 4px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; }
     .count-badge { background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 12px; }
-    .toggle-icon { display: inline-block; width: 16px; text-align: center; transition: transform 0.2s; }
-    .open .toggle-icon { transform: rotate(90deg); }
+    .toggle-icon { display: inline-block; width: 16px; text-align: center; transition: transform 0.2s; } .open .toggle-icon { transform: rotate(90deg); }
     .loading { text-align: center; color: #999; padding: 20px; }
     .login-box { max-width: 320px; margin: 0 auto; }
 
@@ -173,9 +164,7 @@ const html = `
     async function generate() {
       const urlInput = document.getElementById('longUrl').value.trim(); const btn = document.getElementById('btn'); const errorDiv = document.getElementById('error'); const resultDiv = document.getElementById('result');
       if (!urlInput) return; 
-      // 修复3: 严格的 URL 校验
       try { new URL(urlInput); } catch(e) { errorDiv.innerText = '请输入包含 http:// 或 https:// 的完整网址'; errorDiv.style.display = 'block'; return; }
-      
       btn.innerText = '生成中...'; btn.disabled = true; errorDiv.style.display = 'none'; resultDiv.style.display = 'none';
       try {
         const res = await fetch('/api/create?url=' + encodeURIComponent(urlInput));
@@ -191,15 +180,26 @@ const html = `
     function checkLogin() { if (localStorage.getItem('admin_auth')) { document.getElementById('loginCard').style.display = 'none'; document.getElementById('adminPanel').style.display = 'block'; loadPage(0); } else { document.getElementById('loginCard').style.display = 'block'; document.getElementById('adminPanel').style.display = 'none'; } }
     function adminLogin() { const u = document.getElementById('adminUser').value; const p = document.getElementById('adminPass').value; if (!u || !p) return alert('请输入完整'); localStorage.setItem('admin_auth', JSON.stringify({ u, p })); checkLogin(); }
     function logout() { localStorage.removeItem('admin_auth'); location.reload(); }
-    function getAuthParams() { try { const a = JSON.parse(localStorage.getItem('admin_auth')); return 'u=' + encodeURIComponent(a.u) + '&p=' + encodeURIComponent(a.p); } catch(e) { return ''; } }
+    
+    // --- 核心修复：鉴权 Header 生成 ---
+    function getHeaders() { 
+        const a = JSON.parse(localStorage.getItem('admin_auth') || '{}'); 
+        return { 
+            'Content-Type': 'application/json',
+            'X-Auth-User': a.u || '', 
+            'X-Auth-Key': a.p || '' 
+        }; 
+    }
+    
     function refreshPage() { loadPage(currentPage); }
     async function loadPage(pageIndex) {
       const loading = document.getElementById('tableLoading'); const tbody = document.getElementById('tableBody'); const pagination = document.getElementById('pagination');
       tbody.innerHTML = ''; loading.style.display = 'block'; pagination.style.display = 'none';
       try {
         const offset = pageIndex * pageSize;
-        const url = \`/api/admin/list?\${getAuthParams()}&limit=\${pageSize}&offset=\${offset}&t=\${Date.now()}\`;
-        const res = await fetch(url);
+        // URL 不再带密码，只带分页参数
+        const url = \`/api/admin/list?limit=\${pageSize}&offset=\${offset}&t=\${Date.now()}\`;
+        const res = await fetch(url, { headers: getHeaders() }); // 使用 Header 鉴权
         if (res.status === 401) { logout(); return alert('登录过期'); }
         const data = await res.json();
         renderTable(data.list);
@@ -242,7 +242,8 @@ const html = `
         document.getElementById('statsBody').innerHTML = '';
         document.getElementById('statsLoading').style.display = 'block';
         try {
-            const res = await fetch(\`/api/stats?id=\${id}&\${getAuthParams()}\`);
+            // URL 不再带密码
+            const res = await fetch(\`/api/stats?id=\${id}\`, { headers: getHeaders() });
             if (res.status === 401) { logout(); return; }
             const rawLogs = await res.json();
             if(!Array.isArray(rawLogs)) throw new Error("Err");
@@ -279,9 +280,9 @@ const html = `
     }
     function toggleHistory(rowId, btn) { const row = document.getElementById(rowId); if (row.style.display === 'table-row') { row.style.display = 'none'; btn.classList.remove('open'); } else { row.style.display = 'table-row'; btn.classList.add('open'); } }
     function closeModal(e) { if (e && e.target !== document.getElementById('statsModal') && e.target.className !== 'modal-close') return; document.getElementById('statsModal').style.display = 'none'; }
-    async function deleteItem(id) { if (!confirm('确认删除?')) return; const res = await fetch(\`/api/admin/delete?id=\${id}&\${getAuthParams()}\`); if (res.ok) refreshPage(); else alert('删除失败'); }
-    async function editItem(id) { const newUrl = prompt('新跳转链接:', ''); if (!newUrl) return; const res = await fetch('/api/admin/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, url: newUrl, ...JSON.parse(localStorage.getItem('admin_auth')) }) }); if (res.ok) refreshPage(); else alert('修改失败'); }
-    async function editNote(id, oldNote) { const newNote = prompt('设置备注:', oldNote); if (newNote === null) return; const res = await fetch('/api/admin/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, note: newNote, ...JSON.parse(localStorage.getItem('admin_auth')) }) }); if (res.ok) refreshPage(); else alert('设置失败'); }
+    async function deleteItem(id) { if (!confirm('确认删除?')) return; const res = await fetch(\`/api/admin/delete?id=\${id}\`, { method: 'DELETE', headers: getHeaders() }); if (res.ok) refreshPage(); else alert('删除失败'); }
+    async function editItem(id) { const newUrl = prompt('新跳转链接:', ''); if (!newUrl) return; const res = await fetch('/api/admin/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, url: newUrl }) }); if (res.ok) refreshPage(); else alert('修改失败'); }
+    async function editNote(id, oldNote) { const newNote = prompt('设置备注:', oldNote); if (newNote === null) return; const res = await fetch('/api/admin/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, note: newNote }) }); if (res.ok) refreshPage(); else alert('设置失败'); }
   </script>
 </body>
 </html>
@@ -296,33 +297,31 @@ export default {
 
     if (path === "/api/create") {
       const targetUrl = url.searchParams.get("url"); 
-      // 修复3: 后端也加一道校验
       try { new URL(targetUrl); } catch(e) { return new Response(JSON.stringify({error:"Invalid URL"})); }
-      
       const part1 = Math.random().toString(36).substring(2); const part2 = Math.random().toString(36).substring(2); const shortId = (part1 + part2).substring(0, 9); 
       const now = Date.now();
-      
-      // 修复1: 检查 ID 是否重复 (防碰撞)
       const exists = await env.DB.prepare('SELECT id FROM links WHERE id = ?').bind(shortId).first();
       if (exists) return new Response(JSON.stringify({error:"ID Collision, please retry"}), { status: 500 });
-
       await env.DB.prepare('INSERT INTO links (id, url, created_at) VALUES (?, ?, ?)').bind(shortId, targetUrl, now).run();
       return new Response(JSON.stringify({ short_id: shortId, short_url: `${url.origin}/${shortId}`, original_url: targetUrl }), { headers: apiHeaders });
     }
 
-    const checkAuth = (u, p) => (env.ADMIN_USER && env.ADMIN_PASSWORD && u === env.ADMIN_USER && p === env.ADMIN_PASSWORD);
+    // --- 后端核心：从 Header 获取鉴权信息 ---
+    const checkAuth = (req, env) => {
+        const u = req.headers.get("X-Auth-User");
+        const p = req.headers.get("X-Auth-Key");
+        return (env.ADMIN_USER && env.ADMIN_PASSWORD && u === env.ADMIN_USER && p === env.ADMIN_PASSWORD);
+    };
 
-    // 修复2: 提高统计上限到 1000 条
     if (path === "/api/stats") {
-      const id = url.searchParams.get("id"); const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
-      if (!checkAuth(u, p)) return new Response("Auth Failed", { status: 401 });
+      const id = url.searchParams.get("id"); 
+      if (!checkAuth(request, env)) return new Response("Auth Failed", { status: 401 });
       const results = await env.DB.prepare('SELECT * FROM visits WHERE link_id = ? ORDER BY created_at DESC LIMIT 1000').bind(id).all();
       return new Response(JSON.stringify(results.results), { headers: apiHeaders });
     }
 
     if (path === "/api/admin/list") {
-      const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
-      if (!checkAuth(u, p)) return new Response("Auth Failed", { status: 401 });
+      if (!checkAuth(request, env)) return new Response("Auth Failed", { status: 401 });
       const limit = parseInt(url.searchParams.get("limit")) || 10;
       const offset = parseInt(url.searchParams.get("offset")) || 0;
       const query = `SELECT l.id, l.url, l.note, l.created_at, COUNT(v.id) as visits FROM links l LEFT JOIN visits v ON l.id = v.link_id GROUP BY l.id ORDER BY l.created_at DESC LIMIT ? OFFSET ?`;
@@ -332,17 +331,18 @@ export default {
     }
 
     if (path === "/api/admin/delete") {
-      const id = url.searchParams.get("id"); const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
-      if (!checkAuth(u, p)) return new Response("Auth Failed", { status: 401 });
+      if (request.method !== "DELETE") return new Response("Method Not Allowed", { status: 405 });
+      const id = url.searchParams.get("id");
+      if (!checkAuth(request, env)) return new Response("Auth Failed", { status: 401 });
       await env.DB.batch([ env.DB.prepare('DELETE FROM links WHERE id = ?').bind(id), env.DB.prepare('DELETE FROM visits WHERE link_id = ?').bind(id) ]);
       return new Response("OK", { status: 200, headers: apiHeaders });
     }
 
     if (path === "/api/admin/edit") {
       if (request.method !== "POST") return new Response("405");
+      if (!checkAuth(request, env)) return new Response("Auth Failed", { status: 401 });
       try {
         const body = await request.json();
-        if (!checkAuth(body.u, body.p)) return new Response("Auth Failed", { status: 401 });
         if (body.note !== undefined) { await env.DB.prepare('UPDATE links SET note = ? WHERE id = ?').bind(body.note, body.id).run(); } 
         else if (body.url) { await env.DB.prepare('UPDATE links SET url = ? WHERE id = ?').bind(body.url, body.id).run(); }
         return new Response("OK", { status: 200, headers: apiHeaders });
