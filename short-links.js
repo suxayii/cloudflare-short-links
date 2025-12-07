@@ -12,7 +12,7 @@ const html = `
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>${CONFIG.TITLE}</title>
   <style>
-    /* 全局样式保持不变，为了节省篇幅，此处省略部分 CSS，功能不受影响 */
+    /* 样式部分保持不变，省略以节省空间... */
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f4f6; margin: 0; color: #333; -webkit-tap-highlight-color: transparent; }
     * { box-sizing: border-box; }
     .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -23,7 +23,9 @@ const html = `
     input { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; -webkit-appearance: none; }
     input:focus { border-color: #000; }
     button { border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: 600; margin-top: 10px; transition: 0.2s; }
-    .btn-black { background: #111; color: white; } .btn-green { background: #10b981; color: white; display: flex; align-items: center; justify-content: center; gap: 6px;}
+    .btn-black { background: #111; color: white; }
+    .btn-black:hover { background: #333; }
+    .btn-green { background: #10b981; color: white; display: flex; align-items: center; justify-content: center; gap: 6px;}
     #result { margin-top: 20px; padding: 16px; background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 12px; display: none; text-align: left; }
     .short-url { font-size: 16px; font-weight: 700; color: #047857; text-decoration: none; word-break: break-all; display: block; margin-bottom: 12px; }
     #adminPanel { display: none; width: 100%; max-width: 1100px; margin: 0 auto; }
@@ -40,7 +42,11 @@ const html = `
     .date-text { color: #9ca3af; font-size: 12px; font-family: monospace; }
     .action-btns { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
     .btn-xs { padding: 6px 10px; width: auto; font-size: 12px; margin-top: 0; border-radius: 6px; }
-    .btn-emerald { background: #10b981; color: white; } .btn-teal { background: #0d9488; color: white; } .btn-blue { background: #3b82f6; color: white; } .btn-purple { background: #8b5cf6; color: white; } .btn-red { background: #ef4444; color: white; }
+    .btn-emerald { background: #10b981; color: white; }
+    .btn-teal { background: #0d9488; color: white; }
+    .btn-blue { background: #3b82f6; color: white; }
+    .btn-purple { background: #8b5cf6; color: white; }
+    .btn-red { background: #ef4444; color: white; }
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
     .btn-page { width: auto; padding: 8px 16px; background: white; border: 1px solid #e5e7eb; color: #333; }
     .btn-page:disabled { background: #f3f4f6; color: #999; }
@@ -161,6 +167,18 @@ const html = `
   <script>
     const path = window.location.pathname;
     if (path === '/admin') { document.getElementById('homeView').style.display = 'none'; document.getElementById('adminView').style.display = 'flex'; setTimeout(checkLogin, 50); }
+    
+    // --- 安全核心：HTML 转义函数 (防止 XSS) ---
+    function escapeHtml(unsafe) {
+      if (typeof unsafe !== 'string') return unsafe;
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     async function generate() {
       const urlInput = document.getElementById('longUrl').value.trim(); const btn = document.getElementById('btn'); const errorDiv = document.getElementById('error'); const resultDiv = document.getElementById('result');
       if (!urlInput) return; 
@@ -181,14 +199,10 @@ const html = `
     function adminLogin() { const u = document.getElementById('adminUser').value; const p = document.getElementById('adminPass').value; if (!u || !p) return alert('请输入完整'); localStorage.setItem('admin_auth', JSON.stringify({ u, p })); checkLogin(); }
     function logout() { localStorage.removeItem('admin_auth'); location.reload(); }
     
-    // --- 核心修复：鉴权 Header 生成 ---
+    // Header 鉴权
     function getHeaders() { 
         const a = JSON.parse(localStorage.getItem('admin_auth') || '{}'); 
-        return { 
-            'Content-Type': 'application/json',
-            'X-Auth-User': a.u || '', 
-            'X-Auth-Key': a.p || '' 
-        }; 
+        return { 'Content-Type': 'application/json', 'X-Auth-User': a.u || '', 'X-Auth-Key': a.p || '' }; 
     }
     
     function refreshPage() { loadPage(currentPage); }
@@ -197,9 +211,8 @@ const html = `
       tbody.innerHTML = ''; loading.style.display = 'block'; pagination.style.display = 'none';
       try {
         const offset = pageIndex * pageSize;
-        // URL 不再带密码，只带分页参数
         const url = \`/api/admin/list?limit=\${pageSize}&offset=\${offset}&t=\${Date.now()}\`;
-        const res = await fetch(url, { headers: getHeaders() }); // 使用 Header 鉴权
+        const res = await fetch(url, { headers: getHeaders() });
         if (res.status === 401) { logout(); return alert('登录过期'); }
         const data = await res.json();
         renderTable(data.list);
@@ -212,23 +225,25 @@ const html = `
     }
     function nextPage() { loadPage(currentPage + 1); }
     function prevPage() { if (currentPage > 0) loadPage(currentPage - 1); }
+    
+    // --- 修复：渲染列表时使用 escapeHtml ---
     function renderTable(list) {
       const tbody = document.getElementById('tableBody');
       if (!list || list.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">暂无数据</td></tr>'; return; }
       const html = list.map(item => \`
         <tr>
-          <td><span class="tag">\${item.id}</span></td>
-          <td><div style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="\${item.url}">\${item.url}</div></td>
-          <td>\${item.note ? \`<span class="note-text">\${item.note}</span>\` : \`<span class="note-empty">无备注</span>\`}</td>
+          <td><span class="tag">\${escapeHtml(item.id)}</span></td>
+          <td><div style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="\${escapeHtml(item.url)}">\${escapeHtml(item.url)}</div></td>
+          <td>\${item.note ? \`<span class="note-text">\${escapeHtml(item.note)}</span>\` : \`<span class="note-empty">无备注</span>\`}</td>
           <td><span class="date-text">\${item.created}</span></td>
           <td style="text-align:center;"><span class="visits-badge">🔥 \${item.visits}</span></td>
           <td>
             <div class="action-btns">
-              <button class="btn-emerald btn-xs" onclick="copyShortLink(this, '\${item.id}')">📄 复制</button>
-              <button class="btn-purple btn-xs" onclick="editNote('\${item.id}', '\${item.note || ''}')">📝 备注</button>
-              <button class="btn-teal btn-xs" onclick="showStats('\${item.id}')">📉 统计</button>
-              <button class="btn-blue btn-xs" onclick="editItem('\${item.id}')">修改</button>
-              <button class="btn-red btn-xs" onclick="deleteItem('\${item.id}')">删除</button>
+              <button class="btn-emerald btn-xs" onclick="copyShortLink(this, '\${escapeHtml(item.id)}')">📄 复制</button>
+              <button class="btn-purple btn-xs" onclick="editNote('\${escapeHtml(item.id)}', '\${escapeHtml(item.note || '')}')">📝 备注</button>
+              <button class="btn-teal btn-xs" onclick="showStats('\${escapeHtml(item.id)}')">📉 统计</button>
+              <button class="btn-blue btn-xs" onclick="editItem('\${escapeHtml(item.id)}')">修改</button>
+              <button class="btn-red btn-xs" onclick="deleteItem('\${escapeHtml(item.id)}')">删除</button>
             </div>
           </td>
         </tr>
@@ -236,13 +251,13 @@ const html = `
       tbody.innerHTML = html;
     }
     function copyShortLink(btn, id) { const shortUrl = window.location.origin + "/" + id; navigator.clipboard.writeText(shortUrl).then(() => { const originalText = btn.innerText; btn.innerText = "✅"; setTimeout(() => btn.innerText = originalText, 2000); }).catch(err => alert("复制失败")); }
+    
     async function showStats(id) {
         document.getElementById('statsModal').style.display = 'flex';
         document.getElementById('modalTitle').innerText = '访问详情: ' + id;
         document.getElementById('statsBody').innerHTML = '';
         document.getElementById('statsLoading').style.display = 'block';
         try {
-            // URL 不再带密码
             const res = await fetch(\`/api/stats?id=\${id}\`, { headers: getHeaders() });
             if (res.status === 401) { logout(); return; }
             const rawLogs = await res.json();
@@ -261,6 +276,8 @@ const html = `
         } catch(e) { document.getElementById('statsBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">加载失败或无数据</td></tr>'; } 
         finally { document.getElementById('statsLoading').style.display = 'none'; }
     }
+    
+    // --- 修复：渲染统计表格时使用 escapeHtml ---
     function renderGroupedStats(groups) {
         if (groups.length === 0) { document.getElementById('statsBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">暂无访问记录</td></tr>'; return; }
         const html = groups.map((g, index) => {
@@ -269,7 +286,7 @@ const html = `
             return \`
             <tr class="ip-row" onclick="toggleHistory('h-\${index}', this)">
                 <td style="text-align:center;"><span class="toggle-icon">▶</span></td>
-                <td style="padding:12px 5px;"><div style="font-weight:bold;font-family:monospace;font-size:13px;">\${g.ip}</div><div style="font-size:12px;color:#666;">\${g.region}</div></td>
+                <td style="padding:12px 5px;"><div style="font-weight:bold;font-family:monospace;font-size:13px;">\${escapeHtml(g.ip)}</div><div style="font-size:12px;color:#666;">\${escapeHtml(g.region)}</div></td>
                 <td style="text-align:center;"><span class="count-badge">\${g.count}</span></td>
                 <td style="text-align:right;padding-right:10px;font-size:12px;color:#888;"><div>\${latestStr.split(' ')[0]}</div><div>\${latestStr.split(' ')[1]}</div></td>
             </tr>
