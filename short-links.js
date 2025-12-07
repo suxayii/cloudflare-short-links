@@ -18,7 +18,6 @@ const html = `
 
     .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
     
-    /* 生成卡片 */
     .card { background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); width: 100%; max-width: 400px; text-align: center; }
     h1 { margin: 0 0 20px 0; font-size: 1.5rem; letter-spacing: -0.5px; }
     
@@ -30,77 +29,76 @@ const html = `
     button { border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: 600; margin-top: 10px; transition: 0.2s; }
     .btn-black { background: #111; color: white; }
     .btn-black:hover { background: #333; }
+    /* 前端大按钮 */
     .btn-green { background: #10b981; color: white; display: flex; align-items: center; justify-content: center; gap: 6px;}
     
     #result { margin-top: 20px; padding: 16px; background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 12px; display: none; text-align: left; }
     .short-url { font-size: 16px; font-weight: 700; color: #047857; text-decoration: none; word-break: break-all; display: block; margin-bottom: 12px; }
 
-    /* ================= 后台核心样式 ================= */
-    #adminPanel { display: none; width: 100%; max-width: 900px; margin: 0 auto; }
+    /* 后台样式 */
+    #adminPanel { display: none; width: 100%; max-width: 1100px; margin: 0 auto; }
     .admin-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
     
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .header-actions { display: flex; gap: 8px; }
 
-    /* 表格基础样式 (PC端) */
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; }
-    td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+    th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; }
+    td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; word-wrap: break-word; }
     
     .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #eff6ff; color: #2563eb; font-family: monospace; }
     .visits-badge { background: #fff7ed; color: #c2410c; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 1px solid #ffedd5; }
     
-    /* 时间样式 */
-    .date-text { color: #9ca3af; font-size: 13px; font-family: monospace; }
+    .date-text { color: #9ca3af; font-size: 12px; font-family: monospace; }
+    .note-text { color: #4b5563; font-size: 13px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .note-empty { color: #d1d5db; font-size: 12px; font-style: italic; }
 
-    .action-btns { display: flex; gap: 6px; justify-content: flex-end; }
-    .btn-xs { padding: 6px 12px; width: auto; font-size: 12px; margin-top: 0; border-radius: 6px; }
+    /* 后台操作按钮组 */
+    .action-btns { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+    .btn-xs { padding: 6px 10px; width: auto; font-size: 12px; margin-top: 0; border-radius: 6px; }
+    
+    /* 按钮颜色定义 */
+    .btn-emerald { background: #10b981; color: white; } /* 后台复制按钮 */
     .btn-teal { background: #0d9488; color: white; }
     .btn-blue { background: #3b82f6; color: white; }
+    .btn-purple { background: #8b5cf6; color: white; }
     .btn-red { background: #ef4444; color: white; }
 
-    /* 分页栏 */
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
     .btn-page { width: auto; padding: 8px 16px; background: white; border: 1px solid #e5e7eb; color: #333; }
     .btn-page:disabled { background: #f3f4f6; color: #999; }
 
-    /* ================= 📱 移动端 核心适配 ================= */
+    /* 移动端适配 */
     @media (max-width: 640px) {
         .container { padding: 10px; align-items: flex-start; }
         .card, .admin-card { padding: 20px 15px; border-radius: 12px; }
-
         thead { display: none; }
         table, tbody, tr, td { display: block; width: 100%; }
-
-        tr {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            padding: 15px;
-            position: relative;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        /* 第一列：ID (左上角) */
-        td:nth-child(1) { padding: 0 0 5px 0; border: none; font-size: 16px; font-weight: bold; }
-
-        /* 第二列：原始链接 (中间) */
-        td:nth-child(2) { padding: 0 0 10px 0; border: none; font-size: 13px; color: #4b5563; word-break: break-all; }
-        td:nth-child(2) div { max-width: 100% !important; }
-
-        /* 第三列：创建时间 (左下角) */
-        td:nth-child(3) { padding: 0 0 10px 0; border: none; text-align: left; }
-        .date-text::before { content: '📅 '; opacity: 0.6; }
-
-        /* 第四列：访问次数 (右上角 - 绝对定位) */
-        td:nth-child(4) { position: absolute; top: 15px; right: 15px; padding: 0; border: none; text-align: right; }
-
-        /* 第五列：操作按钮 (底部) */
-        td:nth-child(5) { padding: 12px 0 0 0; border-top: 1px dashed #e5e7eb; }
-        .action-btns { justify-content: space-between; gap: 10px; }
-        .action-btns button { flex: 1; padding: 10px 0; font-size: 13px; margin: 0; }
         
+        tr { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 15px; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        
+        td:nth-child(1) { padding: 0 0 5px 0; border: none; font-size: 16px; font-weight: bold; }
+        td:nth-child(2) { padding: 0 0 8px 0; border: none; font-size: 13px; color: #4b5563; word-break: break-all; }
+        td:nth-child(2) div { max-width: 100% !important; }
+        td:nth-child(3) { padding: 0 0 10px 0; border: none; }
+        .note-text { display: block; white-space: normal; background: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
+        td:nth-child(4) { padding: 0 0 10px 0; border: none; text-align: left; }
+        .date-text::before { content: '📅 '; opacity: 0.6; }
+        td:nth-child(5) { position: absolute; top: 15px; right: 15px; padding: 0; border: none; text-align: right; }
+        
+        /* 操作区域适配 */
+        td:nth-child(6) { padding: 12px 0 0 0; border-top: 1px dashed #e5e7eb; }
+        .action-btns { 
+            justify-content: flex-start; /* 左对齐 */
+            gap: 8px; 
+        }
+        .action-btns button { 
+            flex: 1 1 30%; /* 允许换行，每行约3个 */
+            padding: 8px 0; 
+            font-size: 13px; 
+            margin: 0; 
+            min-width: 60px; /* 最小宽度 */
+        }
         .admin-header { margin-bottom: 15px; }
     }
   </style>
@@ -142,11 +140,12 @@ const html = `
         <table id="linkTable">
           <thead>
             <tr>
-              <th style="width:90px">ID</th>
+              <th style="width:80px">ID</th>
               <th>原始链接</th>
-              <th style="width:110px">创建时间</th>
-              <th style="width:80px; text-align:center;">访问次数</th>
-              <th style="width:150px; text-align:right;">操作</th>
+              <th style="width:150px">备注</th>
+              <th style="width:100px">创建时间</th>
+              <th style="width:70px; text-align:center;">次数</th>
+              <th style="width:240px; text-align:right;">操作</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -187,9 +186,7 @@ const html = `
     function copyLink() { navigator.clipboard.writeText(document.getElementById('shortLink').innerText).then(() => { const btn = document.getElementById('copyBtn'); btn.innerText = '✅ 已复制'; btn.style.background = '#059669'; setTimeout(copyBtnReset, 2000); }); }
     function copyBtnReset() { const btn = document.getElementById('copyBtn'); btn.innerText = '📄 一键复制链接'; btn.style.background = '#10b981'; }
 
-    let pageData = []; 
-    let currentPage = 0;
-    const pageSize = 10;
+    let pageData = []; let currentPage = 0; const pageSize = 10;
 
     function checkLogin() {
       if (localStorage.getItem('admin_auth')) { document.getElementById('loginCard').style.display = 'none'; document.getElementById('adminPanel').style.display = 'block'; fetchAllData(); } 
@@ -211,9 +208,7 @@ const html = `
         const res = await fetch(url);
         if (res.status === 401) { logout(); return alert('登录过期'); }
         const data = await res.json();
-        pageData = data.list;
-        currentPage = 0;
-        renderCurrentPage();
+        pageData = data.list; currentPage = 0; renderCurrentPage();
       } catch (e) { alert('加载失败: ' + e.message); } finally { loading.style.display = 'none'; }
     }
 
@@ -223,16 +218,19 @@ const html = `
       const end = start + pageSize;
       const list = pageData.slice(start, end);
       
-      if (pageData.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">暂无数据</td></tr>'; return; }
+      if (pageData.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">暂无数据</td></tr>'; return; }
 
       const html = list.map(item => \`
         <tr>
           <td><span class="tag">\${item.id}</span></td>
-          <td><div style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="\${item.url}">\${item.url}</div></td>
+          <td><div style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="\${item.url}">\${item.url}</div></td>
+          <td>\${item.note ? \`<span class="note-text">\${item.note}</span>\` : \`<span class="note-empty">无备注</span>\`}</td>
           <td><span class="date-text">\${item.created}</span></td>
-          <td><span class="visits-badge">\${item.visits}</span></td>
+          <td><span class="visits-badge">🔥 \${item.visits}</span></td>
           <td>
             <div class="action-btns">
+              <button class="btn-emerald btn-xs" onclick="copyShortLink(this, '\${item.id}')">📄 复制</button>
+              <button class="btn-purple btn-xs" onclick="editNote('\${item.id}', '\${item.note || ''}')">📝 备注</button>
               <button class="btn-teal btn-xs" onclick="window.open('/api/stats?id=\${item.id}', '_blank')">统计</button>
               <button class="btn-blue btn-xs" onclick="editItem('\${item.id}')">修改</button>
               <button class="btn-red btn-xs" onclick="deleteItem('\${item.id}')">删除</button>
@@ -251,8 +249,43 @@ const html = `
     function nextPage() { currentPage++; renderCurrentPage(); }
     function prevPage() { if (currentPage > 0) currentPage--; renderCurrentPage(); }
 
-    async function deleteItem(id) { if (!confirm('确认删除?')) return; const res = await fetch(\`/api/admin/delete?id=\${id}&\${getAuthParams()}\`); if (res.ok) fetchAllData(); else alert('删除失败'); }
-    async function editItem(id) { const newUrl = prompt('新跳转链接:', ''); if (!newUrl) return; const auth = JSON.parse(localStorage.getItem('admin_auth')); const res = await fetch('/api/admin/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, url: newUrl, u: auth.u, p: auth.p }) }); if (res.ok) fetchAllData(); else alert('修改失败'); }
+    // --- 后台复制功能 ---
+    function copyShortLink(btn, id) {
+        // 构建短链接 (当前域名 + / + ID)
+        const shortUrl = window.location.origin + "/" + id;
+        navigator.clipboard.writeText(shortUrl).then(() => {
+            const originalText = btn.innerText;
+            btn.innerText = "✅"; // 反馈
+            setTimeout(() => btn.innerText = originalText, 2000);
+        }).catch(err => alert("复制失败，请手动复制"));
+    }
+
+    async function deleteItem(id) { 
+        if (!confirm('确认删除?')) return; 
+        const res = await fetch(\`/api/admin/delete?id=\${id}&\${getAuthParams()}\`); 
+        if (res.ok) { pageData = pageData.filter(item => item.id !== id); renderCurrentPage(); } else { alert('删除失败'); } 
+    }
+    
+    async function editItem(id) { 
+        const newUrl = prompt('新跳转链接:', ''); if (!newUrl) return; 
+        const res = await updateRecord({ id, url: newUrl });
+        if (res.ok) { const item = pageData.find(i => i.id === id); if(item) item.url = newUrl; renderCurrentPage(); } else { alert('修改失败'); } 
+    }
+
+    async function editNote(id, oldNote) {
+        const newNote = prompt('设置备注:', oldNote); if (newNote === null) return;
+        const res = await updateRecord({ id, note: newNote });
+        if (res.ok) { const item = pageData.find(i => i.id === id); if(item) item.note = newNote; renderCurrentPage(); } else { alert('设置失败'); }
+    }
+
+    async function updateRecord(data) {
+        const auth = JSON.parse(localStorage.getItem('admin_auth'));
+        return await fetch('/api/admin/edit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...data, u: auth.u, p: auth.p })
+        });
+    }
   </script>
 </body>
 </html>
@@ -268,7 +301,7 @@ export default {
     if (path === "/api/create") {
       const targetUrl = url.searchParams.get("url"); if (!targetUrl || !targetUrl.startsWith("http")) return new Response(JSON.stringify({error:"Invalid URL"}));
       const part1 = Math.random().toString(36).substring(2); const part2 = Math.random().toString(36).substring(2); const shortId = (part1 + part2).substring(0, 9); 
-      await env.LINKS.put(shortId, targetUrl, { metadata: { c: Date.now() } });
+      await env.LINKS.put(shortId, targetUrl, { metadata: { c: Date.now(), n: "" } });
       await env.STATS.put(shortId, JSON.stringify([]));
       return new Response(JSON.stringify({ short_id: shortId, short_url: `${url.origin}/${shortId}`, original_url: targetUrl }), { headers: apiHeaders });
     }
@@ -290,7 +323,7 @@ export default {
         const originalUrl = await env.LINKS.get(k.name);
         let visitCount = 0; try { const statsJson = await env.STATS.get(k.name); if(statsJson) visitCount = JSON.parse(statsJson).length; } catch(e){}
         let dateStr = "-"; if (k.metadata && k.metadata.c) { dateStr = new Date(k.metadata.c).toISOString().split('T')[0]; }
-        return { id: k.name, url: originalUrl || "已失效", visits: visitCount, created: dateStr };
+        return { id: k.name, url: originalUrl || "已失效", visits: visitCount, created: dateStr, note: k.metadata?.n || "" };
       });
       const list = await Promise.all(detailPromises);
       return new Response(JSON.stringify({ list }), { headers: apiHeaders });
@@ -307,9 +340,14 @@ export default {
       try {
         const body = await request.json();
         if (!checkAuth(body.u, body.p)) return new Response("Auth Failed", { status: 401 });
-        const oldMeta = await env.LINKS.getWithMetadata(body.id);
-        const meta = oldMeta.metadata || { c: Date.now() }; 
-        if (body.id && body.url) { await env.LINKS.put(body.id, body.url, { metadata: meta }); return new Response("OK", { status: 200, headers: apiHeaders }); }
+        const oldVal = await env.LINKS.get(body.id);
+        const oldMetaWrapper = await env.LINKS.getWithMetadata(body.id);
+        const oldMeta = oldMetaWrapper.metadata || { c: Date.now() };
+        const newUrl = body.url || oldVal;
+        const newNote = body.note !== undefined ? body.note : (oldMeta.n || ""); 
+        const newMeta = { ...oldMeta, n: newNote };
+        await env.LINKS.put(body.id, newUrl, { metadata: newMeta });
+        return new Response("OK", { status: 200, headers: apiHeaders });
       } catch(e) { return new Response("Error", { status: 500 }); }
     }
 
