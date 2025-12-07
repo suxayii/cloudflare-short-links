@@ -89,12 +89,11 @@ const html = `
         td:nth-child(2) { padding: 0 0 10px 0; border: none; font-size: 13px; color: #4b5563; word-break: break-all; }
         td:nth-child(2) div { max-width: 100% !important; }
 
-        /* 第三列：创建时间 (左下角 - 新位置) */
+        /* 第三列：创建时间 (左下角) */
         td:nth-child(3) { padding: 0 0 10px 0; border: none; text-align: left; }
-        /* 手机端稍微改一下时间样式 */
         .date-text::before { content: '📅 '; opacity: 0.6; }
 
-        /* 第四列：热度 (右上角 - 绝对定位) */
+        /* 第四列：访问次数 (右上角 - 绝对定位) */
         td:nth-child(4) { position: absolute; top: 15px; right: 15px; padding: 0; border: none; text-align: right; }
 
         /* 第五列：操作按钮 (底部) */
@@ -146,7 +145,7 @@ const html = `
               <th style="width:90px">ID</th>
               <th>原始链接</th>
               <th style="width:110px">创建时间</th>
-              <th style="width:80px; text-align:center;">热度</th>
+              <th style="width:80px; text-align:center;">访问次数</th>
               <th style="width:150px; text-align:right;">操作</th>
             </tr>
           </thead>
@@ -208,17 +207,13 @@ const html = `
       const loading = document.getElementById('tableLoading'); const tbody = document.getElementById('tableBody'); const pagination = document.getElementById('pagination');
       tbody.innerHTML = ''; loading.style.display = 'block'; pagination.style.display = 'none';
       try {
-        // 请求 API 获取排序后的列表
         const url = '/api/admin/list?' + getAuthParams() + '&t=' + Date.now();
         const res = await fetch(url);
         if (res.status === 401) { logout(); return alert('登录过期'); }
         const data = await res.json();
-        
-        // 存储所有数据用于前端分页
         pageData = data.list;
         currentPage = 0;
         renderCurrentPage();
-        
       } catch (e) { alert('加载失败: ' + e.message); } finally { loading.style.display = 'none'; }
     }
 
@@ -235,7 +230,7 @@ const html = `
           <td><span class="tag">\${item.id}</span></td>
           <td><div style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="\${item.url}">\${item.url}</div></td>
           <td><span class="date-text">\${item.created}</span></td>
-          <td><span class="visits-badge">🔥 \${item.visits}</span></td>
+          <td><span class="visits-badge">\${item.visits}</span></td>
           <td>
             <div class="action-btns">
               <button class="btn-teal btn-xs" onclick="window.open('/api/stats?id=\${item.id}', '_blank')">统计</button>
@@ -247,7 +242,6 @@ const html = `
       \`).join('');
       tbody.innerHTML = html;
       
-      // 更新分页按钮
       document.getElementById('pagination').style.display = 'flex';
       document.getElementById('pageNum').innerText = currentPage + 1;
       document.getElementById('btnPrev').disabled = (currentPage === 0);
@@ -271,12 +265,9 @@ export default {
 
     if (path === "/" || path === "/admin") return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
 
-    // API: 创建 (增加 metadata 记录时间)
     if (path === "/api/create") {
       const targetUrl = url.searchParams.get("url"); if (!targetUrl || !targetUrl.startsWith("http")) return new Response(JSON.stringify({error:"Invalid URL"}));
       const part1 = Math.random().toString(36).substring(2); const part2 = Math.random().toString(36).substring(2); const shortId = (part1 + part2).substring(0, 9); 
-      
-      // 写入 KV 时增加 metadata: { c: Date.now() }
       await env.LINKS.put(shortId, targetUrl, { metadata: { c: Date.now() } });
       await env.STATS.put(shortId, JSON.stringify([]));
       return new Response(JSON.stringify({ short_id: shortId, short_url: `${url.origin}/${shortId}`, original_url: targetUrl }), { headers: apiHeaders });
@@ -290,38 +281,17 @@ export default {
 
     const checkAuth = (u, p) => (env.ADMIN_USER && env.ADMIN_PASSWORD && u === env.ADMIN_USER && p === env.ADMIN_PASSWORD);
 
-    // API: 列表 (获取所有，后端排序)
     if (path === "/api/admin/list") {
       const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
       if (!checkAuth(u, p)) return new Response("Auth Failed", { status: 401 });
-
-      // 1. 获取 keys (一次最多 1000 条，适合中小型项目)
-      // 如果项目很大，需要更复杂的逻辑，这里为了"新链接排前面"做全量获取后排序
       const listData = await env.LINKS.list({ limit: 1000 });
-      
-      // 2. 在内存中按时间倒序排序 (metadata.c)
-      // 如果没有 c (旧数据)，则视为 0，排在最后
-      const sortedKeys = listData.keys.sort((a, b) => {
-          const tA = a.metadata?.c || 0;
-          const tB = b.metadata?.c || 0;
-          return tB - tA; // 倒序
-      });
-
-      // 3. 并行获取详情
+      const sortedKeys = listData.keys.sort((a, b) => { const tA = a.metadata?.c || 0; const tB = b.metadata?.c || 0; return tB - tA; });
       const detailPromises = sortedKeys.map(async (k) => {
         const originalUrl = await env.LINKS.get(k.name);
-        let visitCount = 0; 
-        try { const statsJson = await env.STATS.get(k.name); if(statsJson) visitCount = JSON.parse(statsJson).length; } catch(e){}
-        
-        // 格式化时间
-        let dateStr = "-";
-        if (k.metadata && k.metadata.c) {
-            dateStr = new Date(k.metadata.c).toISOString().split('T')[0]; // YYYY-MM-DD
-        }
-
+        let visitCount = 0; try { const statsJson = await env.STATS.get(k.name); if(statsJson) visitCount = JSON.parse(statsJson).length; } catch(e){}
+        let dateStr = "-"; if (k.metadata && k.metadata.c) { dateStr = new Date(k.metadata.c).toISOString().split('T')[0]; }
         return { id: k.name, url: originalUrl || "已失效", visits: visitCount, created: dateStr };
       });
-      
       const list = await Promise.all(detailPromises);
       return new Response(JSON.stringify({ list }), { headers: apiHeaders });
     }
@@ -337,10 +307,8 @@ export default {
       try {
         const body = await request.json();
         if (!checkAuth(body.u, body.p)) return new Response("Auth Failed", { status: 401 });
-        // 更新时保留原有的 metadata (时间戳)
         const oldMeta = await env.LINKS.getWithMetadata(body.id);
-        const meta = oldMeta.metadata || { c: Date.now() }; // 如果没有就补一个
-        
+        const meta = oldMeta.metadata || { c: Date.now() }; 
         if (body.id && body.url) { await env.LINKS.put(body.id, body.url, { metadata: meta }); return new Response("OK", { status: 200, headers: apiHeaders }); }
       } catch(e) { return new Response("Error", { status: 500 }); }
     }
