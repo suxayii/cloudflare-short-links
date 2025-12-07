@@ -1,6 +1,6 @@
 // --- 配置区域 ---
 const CONFIG = {
-  TITLE: "短链服务"
+  TITLE: "Suxia 短链服务"
 };
 
 // --- HTML 页面 ---
@@ -29,7 +29,6 @@ const html = `
     button { border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: 600; margin-top: 10px; transition: 0.2s; }
     .btn-black { background: #111; color: white; }
     .btn-black:hover { background: #333; }
-    /* 前端大按钮 */
     .btn-green { background: #10b981; color: white; display: flex; align-items: center; justify-content: center; gap: 6px;}
     
     #result { margin-top: 20px; padding: 16px; background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 12px; display: none; text-align: left; }
@@ -38,27 +37,23 @@ const html = `
     /* 后台样式 */
     #adminPanel { display: none; width: 100%; max-width: 1100px; margin: 0 auto; }
     .admin-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .header-actions { display: flex; gap: 8px; }
 
+    /* 表格样式 */
     table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
     th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; }
     td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; word-wrap: break-word; }
     
     .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #eff6ff; color: #2563eb; font-family: monospace; }
     .visits-badge { background: #fff7ed; color: #c2410c; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 1px solid #ffedd5; }
-    
-    .date-text { color: #9ca3af; font-size: 12px; font-family: monospace; }
     .note-text { color: #4b5563; font-size: 13px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .note-empty { color: #d1d5db; font-size: 12px; font-style: italic; }
+    .date-text { color: #9ca3af; font-size: 12px; font-family: monospace; }
 
-    /* 后台操作按钮组 */
     .action-btns { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
     .btn-xs { padding: 6px 10px; width: auto; font-size: 12px; margin-top: 0; border-radius: 6px; }
-    
-    /* 按钮颜色定义 */
-    .btn-emerald { background: #10b981; color: white; } /* 后台复制按钮 */
+    .btn-emerald { background: #10b981; color: white; }
     .btn-teal { background: #0d9488; color: white; }
     .btn-blue { background: #3b82f6; color: white; }
     .btn-purple { background: #8b5cf6; color: white; }
@@ -68,38 +63,49 @@ const html = `
     .btn-page { width: auto; padding: 8px 16px; background: white; border: 1px solid #e5e7eb; color: #333; }
     .btn-page:disabled { background: #f3f4f6; color: #999; }
 
+    /* 模态框 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px; }
+    .modal-content { background: white; width: 100%; max-width: 700px; max-height: 85vh; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+    .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9fafb; }
+    .modal-header h3 { margin: 0; font-size: 16px; }
+    .modal-close { background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 0; margin: 0; width: auto; }
+    .modal-body { padding: 0; overflow-y: auto; flex: 1; }
+    
+    /* 统计表格增强 */
+    .ip-row { cursor: pointer; transition: background 0.1s; }
+    .ip-row:hover { background: #f9fafb; }
+    .history-row { display: none; background: #fdfbf7; }
+    .history-list { padding: 10px 20px; font-family: monospace; font-size: 12px; color: #666; max-height: 200px; overflow-y: auto; }
+    .history-item { padding: 4px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; }
+    .count-badge { background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 12px; }
+    .toggle-icon { display: inline-block; width: 16px; text-align: center; transition: transform 0.2s; }
+    .open .toggle-icon { transform: rotate(90deg); }
+
     /* 移动端适配 */
     @media (max-width: 640px) {
         .container { padding: 10px; align-items: flex-start; }
         .card, .admin-card { padding: 20px 15px; border-radius: 12px; }
+        
         thead { display: none; }
-        table, tbody, tr, td { display: block; width: 100%; }
+        .stats-table thead { display: table-header-group !important; }
         
-        tr { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 15px; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        #linkTable, #linkTable tbody, #linkTable tr, #linkTable td { display: block; width: 100%; }
+        #linkTable tr { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 15px; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         
-        td:nth-child(1) { padding: 0 0 5px 0; border: none; font-size: 16px; font-weight: bold; }
-        td:nth-child(2) { padding: 0 0 8px 0; border: none; font-size: 13px; color: #4b5563; word-break: break-all; }
-        td:nth-child(2) div { max-width: 100% !important; }
-        td:nth-child(3) { padding: 0 0 10px 0; border: none; }
+        #linkTable td:nth-child(1) { padding: 0 0 5px 0; border: none; font-size: 16px; font-weight: bold; }
+        #linkTable td:nth-child(2) { padding: 0 0 8px 0; border: none; font-size: 13px; color: #4b5563; word-break: break-all; }
+        #linkTable td:nth-child(2) div { max-width: 100% !important; }
+        #linkTable td:nth-child(3) { padding: 0 0 10px 0; border: none; }
         .note-text { display: block; white-space: normal; background: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
-        td:nth-child(4) { padding: 0 0 10px 0; border: none; text-align: left; }
+        #linkTable td:nth-child(4) { padding: 0 0 10px 0; border: none; text-align: left; }
         .date-text::before { content: '📅 '; opacity: 0.6; }
-        td:nth-child(5) { position: absolute; top: 15px; right: 15px; padding: 0; border: none; text-align: right; }
-        
-        /* 操作区域适配 */
-        td:nth-child(6) { padding: 12px 0 0 0; border-top: 1px dashed #e5e7eb; }
-        .action-btns { 
-            justify-content: flex-start; /* 左对齐 */
-            gap: 8px; 
-        }
-        .action-btns button { 
-            flex: 1 1 30%; /* 允许换行，每行约3个 */
-            padding: 8px 0; 
-            font-size: 13px; 
-            margin: 0; 
-            min-width: 60px; /* 最小宽度 */
-        }
+        #linkTable td:nth-child(5) { position: absolute; top: 15px; right: 15px; padding: 0; border: none; text-align: right; }
+        #linkTable td:nth-child(6) { padding: 12px 0 0 0; border-top: 1px dashed #e5e7eb; }
+        .action-btns { justify-content: flex-start; gap: 8px; }
+        .action-btns button { flex: 1 1 30%; padding: 8px 0; font-size: 13px; margin: 0; min-width: 60px; }
         .admin-header { margin-bottom: 15px; }
+
+        .stats-table th, .stats-table td { font-size: 12px; padding: 8px 5px; }
     }
   </style>
 </head>
@@ -160,6 +166,29 @@ const html = `
                 <button id="btnNext" onclick="nextPage()" class="btn-page">下一页</button>
             </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="statsModal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="modalTitle">访问详情</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <table class="stats-table" style="width:100%; border-collapse:collapse;">
+          <thead style="background:#f9fafb; position:sticky; top:0; z-index:10;">
+            <tr>
+              <th style="padding:10px;text-align:left;border-bottom:1px solid #eee;width:40px;"></th>
+              <th style="padding:10px;text-align:left;border-bottom:1px solid #eee;">IP / 位置</th>
+              <th style="padding:10px;text-align:center;border-bottom:1px solid #eee;width:60px;">次数</th>
+              <th style="padding:10px;text-align:right;border-bottom:1px solid #eee;width:140px;">最近访问</th>
+            </tr>
+          </thead>
+          <tbody id="statsBody"></tbody>
+        </table>
+        <div id="statsLoading" style="text-align:center; padding:20px; color:#999;">加载中...</div>
       </div>
     </div>
   </div>
@@ -231,7 +260,7 @@ const html = `
             <div class="action-btns">
               <button class="btn-emerald btn-xs" onclick="copyShortLink(this, '\${item.id}')">📄 复制</button>
               <button class="btn-purple btn-xs" onclick="editNote('\${item.id}', '\${item.note || ''}')">📝 备注</button>
-              <button class="btn-teal btn-xs" onclick="window.open('/api/stats?id=\${item.id}', '_blank')">统计</button>
+              <button class="btn-teal btn-xs" onclick="showStats('\${item.id}')">📉 统计</button>
               <button class="btn-blue btn-xs" onclick="editItem('\${item.id}')">修改</button>
               <button class="btn-red btn-xs" onclick="deleteItem('\${item.id}')">删除</button>
             </div>
@@ -249,43 +278,68 @@ const html = `
     function nextPage() { currentPage++; renderCurrentPage(); }
     function prevPage() { if (currentPage > 0) currentPage--; renderCurrentPage(); }
 
-    // --- 后台复制功能 ---
     function copyShortLink(btn, id) {
-        // 构建短链接 (当前域名 + / + ID)
         const shortUrl = window.location.origin + "/" + id;
         navigator.clipboard.writeText(shortUrl).then(() => {
-            const originalText = btn.innerText;
-            btn.innerText = "✅"; // 反馈
-            setTimeout(() => btn.innerText = originalText, 2000);
-        }).catch(err => alert("复制失败，请手动复制"));
+            const originalText = btn.innerText; btn.innerText = "✅"; setTimeout(() => btn.innerText = originalText, 2000);
+        }).catch(err => alert("复制失败"));
     }
 
-    async function deleteItem(id) { 
-        if (!confirm('确认删除?')) return; 
-        const res = await fetch(\`/api/admin/delete?id=\${id}&\${getAuthParams()}\`); 
-        if (res.ok) { pageData = pageData.filter(item => item.id !== id); renderCurrentPage(); } else { alert('删除失败'); } 
-    }
-    
-    async function editItem(id) { 
-        const newUrl = prompt('新跳转链接:', ''); if (!newUrl) return; 
-        const res = await updateRecord({ id, url: newUrl });
-        if (res.ok) { const item = pageData.find(i => i.id === id); if(item) item.url = newUrl; renderCurrentPage(); } else { alert('修改失败'); } 
+    async function showStats(id) {
+        document.getElementById('statsModal').style.display = 'flex';
+        document.getElementById('modalTitle').innerText = '访问详情: ' + id;
+        document.getElementById('statsBody').innerHTML = '';
+        document.getElementById('statsLoading').style.display = 'block';
+        try {
+            const res = await fetch(\`/api/stats?id=\${id}&\${getAuthParams()}\`);
+            if (res.status === 401) { logout(); return; }
+            const rawLogs = await res.json();
+            if(!Array.isArray(rawLogs)) throw new Error("Err");
+            rawLogs.sort((a, b) => new Date(b.time) - new Date(a.time));
+            const grouped = {};
+            rawLogs.forEach(log => {
+                if (!grouped[log.ip]) { grouped[log.ip] = { ip: log.ip, region: log.region, count: 0, latest: log.time, history: [] }; }
+                grouped[log.ip].count++; grouped[log.ip].history.push(log.time); 
+            });
+            const sortedGroups = Object.values(grouped).sort((a, b) => new Date(b.latest) - new Date(a.latest));
+            renderGroupedStats(sortedGroups);
+        } catch(e) { document.getElementById('statsBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">加载失败或无数据</td></tr>'; } 
+        finally { document.getElementById('statsLoading').style.display = 'none'; }
     }
 
-    async function editNote(id, oldNote) {
-        const newNote = prompt('设置备注:', oldNote); if (newNote === null) return;
-        const res = await updateRecord({ id, note: newNote });
-        if (res.ok) { const item = pageData.find(i => i.id === id); if(item) item.note = newNote; renderCurrentPage(); } else { alert('设置失败'); }
+    function renderGroupedStats(groups) {
+        if (groups.length === 0) { document.getElementById('statsBody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">暂无访问记录</td></tr>'; return; }
+        const html = groups.map((g, index) => {
+            // 修复点：这里使用了反斜杠转义内部的反引号 \` 和变量 \${}
+            const historyHtml = g.history.map(t => \`<div class="history-item"><span>\${t.split(' ')[0]}</span><span>\${t.split(' ')[1]}</span></div>\`).join('');
+            return \`
+            <tr class="ip-row" onclick="toggleHistory('h-\${index}', this)">
+                <td style="text-align:center;"><span class="toggle-icon">▶</span></td>
+                <td style="padding:12px 5px;"><div style="font-weight:bold;font-family:monospace;font-size:13px;">\${g.ip}</div><div style="font-size:12px;color:#666;">\${g.region}</div></td>
+                <td style="text-align:center;"><span class="count-badge">\${g.count}</span></td>
+                <td style="text-align:right;padding-right:10px;font-size:12px;color:#888;"><div>\${g.latest.split(' ')[0]}</div><div>\${g.latest.split(' ')[1]}</div></td>
+            </tr>
+            <tr id="h-\${index}" class="history-row"><td colspan="4"><div class="history-list"><div style="font-weight:bold;margin-bottom:5px;color:#333;">📅 访问历史</div>\${historyHtml}</div></td></tr>
+            \`;
+        }).join('');
+        document.getElementById('statsBody').innerHTML = html;
     }
 
-    async function updateRecord(data) {
-        const auth = JSON.parse(localStorage.getItem('admin_auth'));
-        return await fetch('/api/admin/edit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...data, u: auth.u, p: auth.p })
-        });
+    function toggleHistory(rowId, btn) {
+        const row = document.getElementById(rowId);
+        if (row.style.display === 'table-row') { row.style.display = 'none'; btn.classList.remove('open'); } 
+        else { row.style.display = 'table-row'; btn.classList.add('open'); }
     }
+
+    function closeModal(e) {
+        if (e && e.target !== document.getElementById('statsModal') && e.target.className !== 'modal-close') return;
+        document.getElementById('statsModal').style.display = 'none';
+    }
+
+    async function deleteItem(id) { if (!confirm('确认删除?')) return; const res = await fetch(\`/api/admin/delete?id=\${id}&\${getAuthParams()}\`); if (res.ok) { pageData = pageData.filter(item => item.id !== id); renderCurrentPage(); } else { alert('删除失败'); } }
+    async function editItem(id) { const newUrl = prompt('新跳转链接:', ''); if (!newUrl) return; const res = await updateRecord({ id, url: newUrl }); if (res.ok) { const item = pageData.find(i => i.id === id); if(item) item.url = newUrl; renderCurrentPage(); } else { alert('修改失败'); } }
+    async function editNote(id, oldNote) { const newNote = prompt('设置备注:', oldNote); if (newNote === null) return; const res = await updateRecord({ id, note: newNote }); if (res.ok) { const item = pageData.find(i => i.id === id); if(item) item.note = newNote; renderCurrentPage(); } else { alert('设置失败'); } }
+    async function updateRecord(data) { const auth = JSON.parse(localStorage.getItem('admin_auth')); return await fetch('/api/admin/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...data, u: auth.u, p: auth.p }) }); }
   </script>
 </body>
 </html>
@@ -306,13 +360,14 @@ export default {
       return new Response(JSON.stringify({ short_id: shortId, short_url: `${url.origin}/${shortId}`, original_url: targetUrl }), { headers: apiHeaders });
     }
 
-    if (path === "/api/stats") {
-      const shortId = url.searchParams.get("id"); if (!shortId) return new Response("Error");
-      const logsData = await env.STATS.get(shortId); const logs = logsData ? JSON.parse(logsData) : [];
-      return new Response(renderStatsPage(shortId, logs), { headers: { "Content-Type": "text/html;charset=UTF-8" } });
-    }
-
     const checkAuth = (u, p) => (env.ADMIN_USER && env.ADMIN_PASSWORD && u === env.ADMIN_USER && p === env.ADMIN_PASSWORD);
+
+    if (path === "/api/stats") {
+      const id = url.searchParams.get("id"); const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
+      if (!checkAuth(u, p)) return new Response("Auth Failed", { status: 401 });
+      const logsData = await env.STATS.get(id);
+      return new Response(logsData || "[]", { headers: apiHeaders });
+    }
 
     if (path === "/api/admin/list") {
       const u = url.searchParams.get("u"); const p = url.searchParams.get("p");
