@@ -32,14 +32,21 @@ const html = `
     /* 后台样式 */
     #adminPanel { display: none; width: 100%; max-width: 1100px; margin: 0 auto; }
     .admin-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .header-actions { display: flex; gap: 8px; }
     
+    /* 顶部操作栏 (搜索框适配) */
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
+    .header-left { display: flex; align-items: center; gap: 15px; flex: 1; }
+    .header-actions { display: flex; gap: 8px; }
+    .search-box { position: relative; max-width: 300px; width: 100%; }
+    .search-box input { width: 100%; padding: 8px 35px 8px 12px; font-size: 13px; border-radius: 20px; border: 1px solid #e5e7eb; background: #f9fafb; }
+    .search-box input:focus { background: white; border-color: #ccc; }
+    .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999; font-size: 14px; pointer-events: none; }
+
     table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
     th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; user-select: none; }
     td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; word-wrap: break-word; }
     
-    /* 可排序表头样式 */
+    /* 排序样式 */
     .sortable { cursor: pointer; transition: background 0.2s; }
     .sortable:hover { background: #f0fdfa; color: #000; }
     .sort-icon { display: inline-block; width: 12px; margin-left: 4px; color: #ccc; }
@@ -58,6 +65,7 @@ const html = `
     .btn-blue { background: #3b82f6; color: white; }
     .btn-purple { background: #8b5cf6; color: white; }
     .btn-red { background: #ef4444; color: white; }
+    .btn-dark { background: #374151; color: white; } /* 二维码按钮 */
     
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
     .btn-page { width: auto; padding: 8px 16px; background: white; border: 1px solid #e5e7eb; color: #333; }
@@ -72,6 +80,12 @@ const html = `
     .modal-header h3 { margin: 0; font-size: 16px; }
     .modal-close { background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 0; margin: 0; width: auto; }
     .modal-body { padding: 0; overflow-y: auto; flex: 1; }
+    
+    /* 二维码弹窗专用 */
+    .qr-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
+    .qr-img { width: 200px; height: 200px; background: #eee; margin-bottom: 15px; }
+    .qr-tip { color: #666; font-size: 13px; margin-bottom: 10px; }
+
     .ip-row { cursor: pointer; transition: background 0.1s; } .ip-row:hover { background: #f9fafb; }
     .history-row { display: none; background: #fdfbf7; }
     .history-list { padding: 10px 20px; font-family: monospace; font-size: 12px; color: #666; max-height: 200px; overflow-y: auto; }
@@ -82,6 +96,12 @@ const html = `
     @media (max-width: 640px) {
         .container { padding: 10px; align-items: flex-start; }
         .card, .admin-card { padding: 20px 15px; border-radius: 12px; }
+        
+        /* 头部手机适配 */
+        .admin-header { flex-direction: column; align-items: stretch; gap: 15px; }
+        .header-left { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .search-box { max-width: 100%; }
+        
         thead { display: none; }
         .stats-table thead { display: table-header-group !important; }
         #linkTable, #linkTable tbody, #linkTable tr, #linkTable td { display: block; width: 100%; }
@@ -97,7 +117,6 @@ const html = `
         #linkTable td:nth-child(6) { padding: 12px 0 0 0; border-top: 1px dashed #e5e7eb; }
         .action-btns { justify-content: flex-start; gap: 8px; }
         .action-btns button { flex: 1 1 30%; padding: 8px 0; font-size: 13px; margin: 0; min-width: 60px; }
-        .admin-header { margin-bottom: 15px; }
         .stats-table th, .stats-table td { font-size: 12px; padding: 8px 5px; }
     }
   </style>
@@ -126,7 +145,13 @@ const html = `
     <div id="adminPanel">
       <div class="admin-card">
         <div class="admin-header">
-          <h2 style="margin:0; font-size:18px;">📊 链接管理</h2>
+          <div class="header-left">
+            <h2 style="margin:0; font-size:18px;">📊 链接管理</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索备注或链接..." onkeypress="handleSearch(event)">
+                <span class="search-icon">🔍</span>
+            </div>
+          </div>
           <div class="header-actions">
             <button onclick="refreshPage()" class="btn-xs" style="background:#eff6ff; color:#1d4ed8;">↻ 刷新</button>
             <button onclick="logout()" class="btn-xs" style="background:#f3f4f6; color:#374151;">退出</button>
@@ -138,13 +163,9 @@ const html = `
               <th style="width:80px">ID</th>
               <th>原始链接</th>
               <th style="width:150px">备注</th>
-              <th style="width:100px" class="sortable sort-active" onclick="toggleSort('time')" id="th-time">
-                创建时间 <span class="sort-icon">⬇</span>
-              </th>
-              <th style="width:70px; text-align:center;" class="sortable" onclick="toggleSort('visits')" id="th-visits">
-                访问次数 <span class="sort-icon"></span>
-              </th>
-              <th style="width:240px; text-align:right;">操作</th>
+              <th style="width:100px" class="sortable sort-active" onclick="toggleSort('time')" id="th-time">创建时间 <span class="sort-icon">⬇</span></th>
+              <th style="width:70px; text-align:center;" class="sortable" onclick="toggleSort('visits')" id="th-visits">次数 <span class="sort-icon"></span></th>
+              <th style="width:280px; text-align:right;">操作</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -160,11 +181,12 @@ const html = `
       </div>
     </div>
   </div>
-  <div id="statsModal" class="modal-overlay" onclick="closeModal(event)">
+  
+  <div id="statsModal" class="modal-overlay" onclick="closeModal('statsModal', event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h3 id="modalTitle">访问详情</h3>
-        <button class="modal-close" onclick="closeModal()">×</button>
+        <button class="modal-close" onclick="closeModal('statsModal')">×</button>
       </div>
       <div class="modal-body">
         <table class="stats-table" style="width:100%; border-collapse:collapse;">
@@ -182,6 +204,21 @@ const html = `
       </div>
     </div>
   </div>
+
+  <div id="qrModal" class="modal-overlay" onclick="closeModal('qrModal', event)">
+    <div class="modal-content" style="max-width:300px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>二维码</h3>
+        <button class="modal-close" onclick="closeModal('qrModal')">×</button>
+      </div>
+      <div class="modal-body qr-container">
+        <img id="qrImage" class="qr-img" src="" />
+        <div class="qr-tip" id="qrText"></div>
+        <button onclick="closeModal('qrModal')" class="btn-black btn-xs" style="width:100%">关闭</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const path = window.location.pathname;
     if (path === '/admin') { document.getElementById('homeView').style.display = 'none'; document.getElementById('adminView').style.display = 'flex'; setTimeout(checkLogin, 50); }
@@ -202,10 +239,11 @@ const html = `
     }
     function copyLink() { navigator.clipboard.writeText(document.getElementById('shortLink').innerText).then(() => { const btn = document.getElementById('copyBtn'); btn.innerText = '✅ 已复制'; btn.style.background = '#059669'; setTimeout(copyBtnReset, 2000); }); }
     function copyBtnReset() { const btn = document.getElementById('copyBtn'); btn.innerText = '📄 一键复制链接'; btn.style.background = '#10b981'; }
-    let pageData = []; let currentPage = 0; const pageSize = 10;
     
-    // --- 排序状态管理 ---
-    let sortState = { field: 'time', order: 'desc' }; // 默认按时间倒序
+    // --- 状态管理 ---
+    let pageData = []; let currentPage = 0; const pageSize = 10;
+    let sortState = { field: 'time', order: 'desc' };
+    let searchQuery = ""; // 搜索词
 
     function checkLogin() { if (localStorage.getItem('admin_auth')) { document.getElementById('loginCard').style.display = 'none'; document.getElementById('adminPanel').style.display = 'block'; loadPage(0); } else { document.getElementById('loginCard').style.display = 'block'; document.getElementById('adminPanel').style.display = 'none'; } }
     function adminLogin() { const u = document.getElementById('adminUser').value; const p = document.getElementById('adminPass').value; if (!u || !p) return alert('请输入完整'); localStorage.setItem('admin_auth', JSON.stringify({ u, p })); checkLogin(); }
@@ -213,32 +251,24 @@ const html = `
     function getHeaders() { const a = JSON.parse(localStorage.getItem('admin_auth') || '{}'); return { 'Content-Type': 'application/json', 'X-Auth-User': a.u || '', 'X-Auth-Key': a.p || '' }; }
     function refreshPage() { loadPage(currentPage); }
     
-    // --- 排序触发函数 ---
     function toggleSort(field) {
-        if (sortState.field === field) {
-            // 同字段切换顺序
-            sortState.order = sortState.order === 'desc' ? 'asc' : 'desc';
-        } else {
-            // 新字段，默认倒序
-            sortState.field = field;
-            sortState.order = 'desc';
-        }
-        updateSortUI();
-        loadPage(0); // 排序变化后回到第一页
+        if (sortState.field === field) { sortState.order = sortState.order === 'desc' ? 'asc' : 'desc'; } 
+        else { sortState.field = field; sortState.order = 'desc'; }
+        updateSortUI(); loadPage(0);
+    }
+    function updateSortUI() {
+        document.getElementById('th-time').className = 'sortable'; document.getElementById('th-time').querySelector('.sort-icon').innerText = '';
+        document.getElementById('th-visits').className = 'sortable'; document.getElementById('th-visits').querySelector('.sort-icon').innerText = '';
+        const activeTh = document.getElementById('th-' + sortState.field); activeTh.classList.add('sort-active');
+        activeTh.querySelector('.sort-icon').innerText = sortState.order === 'desc' ? '⬇' : '⬆';
     }
 
-    function updateSortUI() {
-        // 重置所有图标
-        document.getElementById('th-time').className = 'sortable';
-        document.getElementById('th-time').querySelector('.sort-icon').innerText = '';
-        document.getElementById('th-visits').className = 'sortable';
-        document.getElementById('th-visits').querySelector('.sort-icon').innerText = '';
-
-        // 设置当前激活的列
-        const activeTh = document.getElementById('th-' + sortState.field);
-        activeTh.classList.add('sort-active');
-        const icon = sortState.order === 'desc' ? '⬇' : '⬆';
-        activeTh.querySelector('.sort-icon').innerText = icon;
+    // --- 搜索功能 ---
+    function handleSearch(e) {
+        if (e.key === 'Enter') {
+            searchQuery = document.getElementById('searchInput').value.trim();
+            loadPage(0);
+        }
     }
 
     async function loadPage(pageIndex) {
@@ -246,8 +276,9 @@ const html = `
       tbody.innerHTML = ''; loading.style.display = 'block'; pagination.style.display = 'none';
       try {
         const offset = pageIndex * pageSize;
-        // 传递排序参数给后端
-        const url = \`/api/admin/list?limit=\${pageSize}&offset=\${offset}&sort=\${sortState.field}&order=\${sortState.order}&t=\${Date.now()}\`;
+        // 增加 search 参数
+        const q = encodeURIComponent(searchQuery);
+        const url = \`/api/admin/list?limit=\${pageSize}&offset=\${offset}&sort=\${sortState.field}&order=\${sortState.order}&q=\${q}&t=\${Date.now()}\`;
         const res = await fetch(url, { headers: getHeaders() });
         if (res.status === 401) { logout(); return alert('登录过期'); }
         const data = await res.json();
@@ -275,6 +306,7 @@ const html = `
           <td style="text-align:center;"><span class="visits-badge">🔥 \${item.visits}</span></td>
           <td>
             <div class="action-btns">
+              <button class="btn-dark btn-xs" onclick="showQr('\${escapeHtml(item.id)}')">📱 二维码</button>
               <button class="btn-emerald btn-xs" onclick="copyShortLink(this, '\${escapeHtml(item.id)}')">📄 复制</button>
               <button class="btn-purple btn-xs" onclick="editNote('\${escapeHtml(item.id)}')">📝 备注</button>
               <button class="btn-teal btn-xs" onclick="showStats('\${escapeHtml(item.id)}')">📉 统计</button>
@@ -287,6 +319,17 @@ const html = `
       tbody.innerHTML = html;
     }
     function copyShortLink(btn, id) { const shortUrl = window.location.origin + "/" + id; navigator.clipboard.writeText(shortUrl).then(() => { const originalText = btn.innerText; btn.innerText = "✅"; setTimeout(() => btn.innerText = originalText, 2000); }).catch(err => alert("复制失败")); }
+    
+    // --- 二维码逻辑 ---
+    function showQr(id) {
+        const shortUrl = window.location.origin + "/" + id;
+        // 使用 QR Server API
+        const qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(shortUrl);
+        document.getElementById('qrImage').src = qrApi;
+        document.getElementById('qrText').innerText = shortUrl;
+        document.getElementById('qrModal').style.display = 'flex';
+    }
+
     async function showStats(id) {
         document.getElementById('statsModal').style.display = 'flex';
         document.getElementById('modalTitle').innerText = '访问详情: ' + id;
@@ -329,22 +372,15 @@ const html = `
         document.getElementById('statsBody').innerHTML = html;
     }
     function toggleHistory(rowId, btn) { const row = document.getElementById(rowId); if (row.style.display === 'table-row') { row.style.display = 'none'; btn.classList.remove('open'); } else { row.style.display = 'table-row'; btn.classList.add('open'); } }
-    function closeModal(e) { if (e && e.target !== document.getElementById('statsModal') && e.target.className !== 'modal-close') return; document.getElementById('statsModal').style.display = 'none'; }
+    
+    function closeModal(id, e) { 
+        if (e && e.target !== document.getElementById(id) && e.target.className !== 'modal-close' && e.target.tagName !== 'BUTTON') return;
+        document.getElementById(id).style.display = 'none'; 
+    }
+    
     async function deleteItem(id) { if (!confirm('确认删除?')) return; const res = await fetch(\`/api/admin/delete?id=\${id}\`, { method: 'DELETE', headers: getHeaders() }); if (res.ok) refreshPage(); else alert('删除失败'); }
-    async function editItem(id) {
-        const item = pageData.find(i => i.id === id); const oldUrl = item ? item.url : '';
-        const newUrl = prompt('新跳转链接:', oldUrl); 
-        if (!newUrl) return; 
-        const res = await fetch('/api/admin/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, url: newUrl }) }); 
-        if (res.ok) refreshPage(); else alert('修改失败'); 
-    }
-    async function editNote(id) {
-        const item = pageData.find(i => i.id === id); const oldNote = item ? (item.note || '') : '';
-        const newNote = prompt('设置备注:', oldNote); 
-        if (newNote === null) return; 
-        const res = await fetch('/api/admin/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, note: newNote }) }); 
-        if (res.ok) refreshPage(); else alert('设置失败'); 
-    }
+    async function editItem(id) { const item = pageData.find(i => i.id === id); const oldUrl = item ? item.url : ''; const newUrl = prompt('新跳转链接:', oldUrl); if (!newUrl) return; const res = await fetch('/api/admin/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, url: newUrl }) }); if (res.ok) refreshPage(); else alert('修改失败'); }
+    async function editNote(id) { const item = pageData.find(i => i.id === id); const oldNote = item ? (item.note || '') : ''; const newNote = prompt('设置备注:', oldNote); if (newNote === null) return; const res = await fetch('/api/admin/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, note: newNote }) }); if (res.ok) refreshPage(); else alert('设置失败'); }
   </script>
 </body>
 </html>
@@ -387,29 +423,34 @@ export default {
       const limit = parseInt(url.searchParams.get("limit")) || 10;
       const offset = parseInt(url.searchParams.get("offset")) || 0;
       
-      // 1. 获取排序参数 (默认按时间倒序)
       const sort = url.searchParams.get("sort");
-      const order = url.searchParams.get("order") === "asc" ? "ASC" : "DESC"; // 默认 DESC
-      
-      // 2. 构建排序 SQL 子句 (防止 SQL 注入，使用白名单)
-      let orderByClause = "ORDER BY l.created_at DESC";
-      if (sort === "visits") {
-          orderByClause = `ORDER BY visits ${order}`;
-      } else if (sort === "time") {
-          orderByClause = `ORDER BY l.created_at ${order}`;
-      }
+      const order = url.searchParams.get("order") === "asc" ? "ASC" : "DESC";
+      const q = url.searchParams.get("q"); // 搜索关键词
 
-      // 3. 执行查询 (COUNT(v.id) 自动计算别名 visits)
+      let orderByClause = "ORDER BY l.created_at DESC";
+      if (sort === "visits") { orderByClause = `ORDER BY visits ${order}`; } 
+      else if (sort === "time") { orderByClause = `ORDER BY l.created_at ${order}`; }
+
+      // 核心更新：SQL 增加 WHERE 子句支持搜索
+      let whereClause = "";
+      let params = [];
+      if (q) {
+          whereClause = "WHERE (l.note LIKE ? OR l.url LIKE ?)";
+          params = [`%${q}%`, `%${q}%`];
+      }
+      params.push(limit, offset);
+
       const query = `
         SELECT l.id, l.url, l.note, l.created_at, COUNT(v.id) as visits 
         FROM links l 
         LEFT JOIN visits v ON l.id = v.link_id 
+        ${whereClause}
         GROUP BY l.id 
         ${orderByClause} 
         LIMIT ? OFFSET ?
       `;
       
-      const { results } = await env.DB.prepare(query).bind(limit, offset).all();
+      const { results } = await env.DB.prepare(query).bind(...params).all();
       const formatted = results.map(item => ({ ...item, created: new Date(item.created_at).toISOString().split('T')[0] }));
       return new Response(JSON.stringify({ list: formatted }), { headers: apiHeaders });
     }
