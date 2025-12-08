@@ -12,7 +12,7 @@ const html = `
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>${CONFIG.TITLE}</title>
   <style>
-    /* 全局样式 */
+    /* 全局基础 */
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f4f6; margin: 0; color: #333; -webkit-tap-highlight-color: transparent; }
     * { box-sizing: border-box; }
     .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -23,7 +23,9 @@ const html = `
     input { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; -webkit-appearance: none; }
     input:focus { border-color: #000; }
     button { border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: 600; margin-top: 10px; transition: 0.2s; }
-    .btn-black { background: #111; color: white; } .btn-green { background: #10b981; color: white; display: flex; align-items: center; justify-content: center; gap: 6px;}
+    .btn-black { background: #111; color: white; }
+    .btn-black:hover { background: #333; }
+    .btn-green { background: #10b981; color: white; display: flex; align-items: center; justify-content: center; gap: 6px;}
     #result { margin-top: 20px; padding: 16px; background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 12px; display: none; text-align: left; }
     .short-url { font-size: 16px; font-weight: 700; color: #047857; text-decoration: none; word-break: break-all; display: block; margin-bottom: 12px; }
     
@@ -32,17 +34,31 @@ const html = `
     .admin-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .header-actions { display: flex; gap: 8px; }
+    
     table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
-    th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; }
+    th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; user-select: none; }
     td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; word-wrap: break-word; }
+    
+    /* 可排序表头样式 */
+    .sortable { cursor: pointer; transition: background 0.2s; }
+    .sortable:hover { background: #f0fdfa; color: #000; }
+    .sort-icon { display: inline-block; width: 12px; margin-left: 4px; color: #ccc; }
+    .sort-active .sort-icon { color: #0d9488; font-weight: bold; }
+
     .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #eff6ff; color: #2563eb; font-family: monospace; }
     .visits-badge { background: #fff7ed; color: #c2410c; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 1px solid #ffedd5; }
     .note-text { color: #4b5563; font-size: 13px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .note-empty { color: #d1d5db; font-size: 12px; font-style: italic; }
     .date-text { color: #9ca3af; font-size: 12px; font-family: monospace; }
+    
     .action-btns { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
     .btn-xs { padding: 6px 10px; width: auto; font-size: 12px; margin-top: 0; border-radius: 6px; }
-    .btn-emerald { background: #10b981; color: white; } .btn-teal { background: #0d9488; color: white; } .btn-blue { background: #3b82f6; color: white; } .btn-purple { background: #8b5cf6; color: white; } .btn-red { background: #ef4444; color: white; }
+    .btn-emerald { background: #10b981; color: white; }
+    .btn-teal { background: #0d9488; color: white; }
+    .btn-blue { background: #3b82f6; color: white; }
+    .btn-purple { background: #8b5cf6; color: white; }
+    .btn-red { background: #ef4444; color: white; }
+    
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
     .btn-page { width: auto; padding: 8px 16px; background: white; border: 1px solid #e5e7eb; color: #333; }
     .btn-page:disabled { background: #f3f4f6; color: #999; }
@@ -63,7 +79,6 @@ const html = `
     .count-badge { background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 12px; }
     .toggle-icon { display: inline-block; width: 16px; text-align: center; transition: transform 0.2s; } .open .toggle-icon { transform: rotate(90deg); }
 
-    /* 移动端适配 */
     @media (max-width: 640px) {
         .container { padding: 10px; align-items: flex-start; }
         .card, .admin-card { padding: 20px 15px; border-radius: 12px; }
@@ -123,8 +138,12 @@ const html = `
               <th style="width:80px">ID</th>
               <th>原始链接</th>
               <th style="width:150px">备注</th>
-              <th style="width:100px">创建时间</th>
-              <th style="width:70px; text-align:center;">次数</th>
+              <th style="width:100px" class="sortable sort-active" onclick="toggleSort('time')" id="th-time">
+                创建时间 <span class="sort-icon">⬇</span>
+              </th>
+              <th style="width:70px; text-align:center;" class="sortable" onclick="toggleSort('visits')" id="th-visits">
+                访问次数 <span class="sort-icon"></span>
+              </th>
               <th style="width:240px; text-align:right;">操作</th>
             </tr>
           </thead>
@@ -166,20 +185,12 @@ const html = `
   <script>
     const path = window.location.pathname;
     if (path === '/admin') { document.getElementById('homeView').style.display = 'none'; document.getElementById('adminView').style.display = 'flex'; setTimeout(checkLogin, 50); }
-    
-    // HTML 转义
-    function escapeHtml(unsafe) {
-      if (typeof unsafe !== 'string') return unsafe;
-      return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
+    function escapeHtml(unsafe) { if (typeof unsafe !== 'string') return unsafe; return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
     async function generate() {
       const urlInput = document.getElementById('longUrl').value.trim(); const btn = document.getElementById('btn'); const errorDiv = document.getElementById('error'); const resultDiv = document.getElementById('result');
       if (!urlInput) return; 
-      // 修复3: 严格的 URL 校验
       try { const u = new URL(urlInput); if(!['http:','https:'].includes(u.protocol)) throw new Error(); } 
       catch(e) { errorDiv.innerText = '请输入包含 http:// 或 https:// 的有效网址'; errorDiv.style.display = 'block'; return; }
-      
       btn.innerText = '生成中...'; btn.disabled = true; errorDiv.style.display = 'none'; resultDiv.style.display = 'none';
       try {
         const res = await fetch('/api/create?url=' + encodeURIComponent(urlInput));
@@ -192,21 +203,55 @@ const html = `
     function copyLink() { navigator.clipboard.writeText(document.getElementById('shortLink').innerText).then(() => { const btn = document.getElementById('copyBtn'); btn.innerText = '✅ 已复制'; btn.style.background = '#059669'; setTimeout(copyBtnReset, 2000); }); }
     function copyBtnReset() { const btn = document.getElementById('copyBtn'); btn.innerText = '📄 一键复制链接'; btn.style.background = '#10b981'; }
     let pageData = []; let currentPage = 0; const pageSize = 10;
+    
+    // --- 排序状态管理 ---
+    let sortState = { field: 'time', order: 'desc' }; // 默认按时间倒序
+
     function checkLogin() { if (localStorage.getItem('admin_auth')) { document.getElementById('loginCard').style.display = 'none'; document.getElementById('adminPanel').style.display = 'block'; loadPage(0); } else { document.getElementById('loginCard').style.display = 'block'; document.getElementById('adminPanel').style.display = 'none'; } }
     function adminLogin() { const u = document.getElementById('adminUser').value; const p = document.getElementById('adminPass').value; if (!u || !p) return alert('请输入完整'); localStorage.setItem('admin_auth', JSON.stringify({ u, p })); checkLogin(); }
     function logout() { localStorage.removeItem('admin_auth'); location.reload(); }
     function getHeaders() { const a = JSON.parse(localStorage.getItem('admin_auth') || '{}'); return { 'Content-Type': 'application/json', 'X-Auth-User': a.u || '', 'X-Auth-Key': a.p || '' }; }
     function refreshPage() { loadPage(currentPage); }
+    
+    // --- 排序触发函数 ---
+    function toggleSort(field) {
+        if (sortState.field === field) {
+            // 同字段切换顺序
+            sortState.order = sortState.order === 'desc' ? 'asc' : 'desc';
+        } else {
+            // 新字段，默认倒序
+            sortState.field = field;
+            sortState.order = 'desc';
+        }
+        updateSortUI();
+        loadPage(0); // 排序变化后回到第一页
+    }
+
+    function updateSortUI() {
+        // 重置所有图标
+        document.getElementById('th-time').className = 'sortable';
+        document.getElementById('th-time').querySelector('.sort-icon').innerText = '';
+        document.getElementById('th-visits').className = 'sortable';
+        document.getElementById('th-visits').querySelector('.sort-icon').innerText = '';
+
+        // 设置当前激活的列
+        const activeTh = document.getElementById('th-' + sortState.field);
+        activeTh.classList.add('sort-active');
+        const icon = sortState.order === 'desc' ? '⬇' : '⬆';
+        activeTh.querySelector('.sort-icon').innerText = icon;
+    }
+
     async function loadPage(pageIndex) {
       const loading = document.getElementById('tableLoading'); const tbody = document.getElementById('tableBody'); const pagination = document.getElementById('pagination');
       tbody.innerHTML = ''; loading.style.display = 'block'; pagination.style.display = 'none';
       try {
         const offset = pageIndex * pageSize;
-        const url = \`/api/admin/list?limit=\${pageSize}&offset=\${offset}&t=\${Date.now()}\`;
+        // 传递排序参数给后端
+        const url = \`/api/admin/list?limit=\${pageSize}&offset=\${offset}&sort=\${sortState.field}&order=\${sortState.order}&t=\${Date.now()}\`;
         const res = await fetch(url, { headers: getHeaders() });
         if (res.status === 401) { logout(); return alert('登录过期'); }
         const data = await res.json();
-        pageData = data.list; // 关键：保存数据到全局变量
+        pageData = data.list; 
         renderTable(pageData);
         currentPage = pageIndex;
         document.getElementById('pageNum').innerText = currentPage + 1;
@@ -221,7 +266,6 @@ const html = `
     function renderTable(list) {
       const tbody = document.getElementById('tableBody');
       if (!list || list.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">暂无数据</td></tr>'; return; }
-      
       const html = list.map(item => \`
         <tr>
           <td><span class="tag">\${escapeHtml(item.id)}</span></td>
@@ -243,7 +287,6 @@ const html = `
       tbody.innerHTML = html;
     }
     function copyShortLink(btn, id) { const shortUrl = window.location.origin + "/" + id; navigator.clipboard.writeText(shortUrl).then(() => { const originalText = btn.innerText; btn.innerText = "✅"; setTimeout(() => btn.innerText = originalText, 2000); }).catch(err => alert("复制失败")); }
-    
     async function showStats(id) {
         document.getElementById('statsModal').style.display = 'flex';
         document.getElementById('modalTitle').innerText = '访问详情: ' + id;
@@ -288,20 +331,15 @@ const html = `
     function toggleHistory(rowId, btn) { const row = document.getElementById(rowId); if (row.style.display === 'table-row') { row.style.display = 'none'; btn.classList.remove('open'); } else { row.style.display = 'table-row'; btn.classList.add('open'); } }
     function closeModal(e) { if (e && e.target !== document.getElementById('statsModal') && e.target.className !== 'modal-close') return; document.getElementById('statsModal').style.display = 'none'; }
     async function deleteItem(id) { if (!confirm('确认删除?')) return; const res = await fetch(\`/api/admin/delete?id=\${id}\`, { method: 'DELETE', headers: getHeaders() }); if (res.ok) refreshPage(); else alert('删除失败'); }
-    
-    // --- 修复1: 修改和备注功能，从内存 pageData 查找旧数据 ---
     async function editItem(id) {
-        const item = pageData.find(i => i.id === id);
-        const oldUrl = item ? item.url : '';
+        const item = pageData.find(i => i.id === id); const oldUrl = item ? item.url : '';
         const newUrl = prompt('新跳转链接:', oldUrl); 
         if (!newUrl) return; 
         const res = await fetch('/api/admin/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, url: newUrl }) }); 
         if (res.ok) refreshPage(); else alert('修改失败'); 
     }
-    
     async function editNote(id) {
-        const item = pageData.find(i => i.id === id);
-        const oldNote = item ? (item.note || '') : '';
+        const item = pageData.find(i => i.id === id); const oldNote = item ? (item.note || '') : '';
         const newNote = prompt('设置备注:', oldNote); 
         if (newNote === null) return; 
         const res = await fetch('/api/admin/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ id, note: newNote }) }); 
@@ -323,13 +361,10 @@ export default {
       const targetUrl = url.searchParams.get("url"); 
       try { const u = new URL(targetUrl); if(!['http:','https:'].includes(u.protocol)) throw new Error(); } 
       catch(e) { return new Response(JSON.stringify({error:"Invalid URL"})); }
-      
       const part1 = Math.random().toString(36).substring(2); const part2 = Math.random().toString(36).substring(2); const shortId = (part1 + part2).substring(0, 9); 
       const now = Date.now();
-      
       const exists = await env.DB.prepare('SELECT id FROM links WHERE id = ?').bind(shortId).first();
       if (exists) return new Response(JSON.stringify({error:"ID Collision, please retry"}), { status: 500 });
-
       await env.DB.prepare('INSERT INTO links (id, url, created_at) VALUES (?, ?, ?)').bind(shortId, targetUrl, now).run();
       return new Response(JSON.stringify({ short_id: shortId, short_url: `${url.origin}/${shortId}`, original_url: targetUrl }), { headers: apiHeaders });
     }
@@ -351,7 +386,29 @@ export default {
       if (!checkAuth(request, env)) return new Response("Auth Failed", { status: 401 });
       const limit = parseInt(url.searchParams.get("limit")) || 10;
       const offset = parseInt(url.searchParams.get("offset")) || 0;
-      const query = `SELECT l.id, l.url, l.note, l.created_at, COUNT(v.id) as visits FROM links l LEFT JOIN visits v ON l.id = v.link_id GROUP BY l.id ORDER BY l.created_at DESC LIMIT ? OFFSET ?`;
+      
+      // 1. 获取排序参数 (默认按时间倒序)
+      const sort = url.searchParams.get("sort");
+      const order = url.searchParams.get("order") === "asc" ? "ASC" : "DESC"; // 默认 DESC
+      
+      // 2. 构建排序 SQL 子句 (防止 SQL 注入，使用白名单)
+      let orderByClause = "ORDER BY l.created_at DESC";
+      if (sort === "visits") {
+          orderByClause = `ORDER BY visits ${order}`;
+      } else if (sort === "time") {
+          orderByClause = `ORDER BY l.created_at ${order}`;
+      }
+
+      // 3. 执行查询 (COUNT(v.id) 自动计算别名 visits)
+      const query = `
+        SELECT l.id, l.url, l.note, l.created_at, COUNT(v.id) as visits 
+        FROM links l 
+        LEFT JOIN visits v ON l.id = v.link_id 
+        GROUP BY l.id 
+        ${orderByClause} 
+        LIMIT ? OFFSET ?
+      `;
+      
       const { results } = await env.DB.prepare(query).bind(limit, offset).all();
       const formatted = results.map(item => ({ ...item, created: new Date(item.created_at).toISOString().split('T')[0] }));
       return new Response(JSON.stringify({ list: formatted }), { headers: apiHeaders });
