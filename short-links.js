@@ -1,6 +1,6 @@
 // --- 配置区域 ---
 const CONFIG = {
-  TITLE: "短链服务"
+  TITLE: "🔗短链服务"
 };
 
 // --- HTML 页面 ---
@@ -20,8 +20,8 @@ const html = `
     h1 { margin: 0 0 20px 0; font-size: 1.5rem; letter-spacing: -0.5px; }
     .input-group { text-align: left; margin-bottom: 15px; }
     label { font-size: 12px; font-weight: 600; color: #666; display: block; margin-bottom: 6px; }
-    input { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; -webkit-appearance: none; }
-    input:focus { border-color: #000; }
+    input, select { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; -webkit-appearance: none; background: #fff; }
+    input:focus, select:focus { border-color: #000; }
     button { border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 14px; font-weight: 600; margin-top: 10px; transition: 0.2s; }
     .btn-black { background: #111; color: white; }
     .btn-black:hover { background: #333; }
@@ -32,13 +32,18 @@ const html = `
     /* 后台样式 */
     #adminPanel { display: none; width: 100%; max-width: 1100px; margin: 0 auto; }
     .admin-card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    
+    /* 顶部操作栏 */
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
-    .header-left { display: flex; align-items: center; gap: 15px; flex: 1; }
+    .header-left { display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; }
     .header-actions { display: flex; gap: 8px; }
-    .search-box { position: relative; max-width: 300px; width: 100%; }
-    .search-box input { width: 100%; padding: 8px 35px 8px 12px; font-size: 13px; border-radius: 20px; border: 1px solid #e5e7eb; background: #f9fafb; }
+    
+    .search-box { position: relative; width: 200px; }
+    .search-box input { padding: 8px 30px 8px 12px; font-size: 13px; border-radius: 6px; background: #f9fafb; }
     .search-box input:focus { background: white; border-color: #ccc; }
-    .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999; font-size: 14px; pointer-events: none; }
+    .search-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #999; font-size: 12px; pointer-events: none; }
+    .filter-select { width: 100px; padding: 8px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #e5e7eb; background: #f9fafb; cursor: pointer; }
+    .filter-select:focus { background: white; }
 
     table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
     th { text-align: left; padding: 12px; background: #f9fafb; color: #6b7280; font-weight: 600; border-bottom: 2px solid #eee; white-space: nowrap; user-select: none; }
@@ -50,7 +55,8 @@ const html = `
     .sort-active .sort-icon { color: #0d9488; font-weight: bold; }
 
     .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #eff6ff; color: #2563eb; font-family: monospace; }
-    .visits-badge { background: #fff7ed; color: #c2410c; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; border: 1px solid #ffedd5; }
+    /* 移除火图标后，保留背景色，调整一下内边距 */
+    .visits-badge { background: #f3f4f6; color: #374151; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; border: 1px solid #e5e7eb; }
     .note-text { color: #4b5563; font-size: 13px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .note-empty { color: #d1d5db; font-size: 12px; font-style: italic; }
     .date-text { color: #9ca3af; font-size: 12px; font-family: monospace; }
@@ -62,7 +68,6 @@ const html = `
     .btn-blue { background: #3b82f6; color: white; }
     .btn-purple { background: #8b5cf6; color: white; }
     .btn-red { background: #ef4444; color: white; }
-    .btn-dark { background: #374151; color: white; }
     
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
     .btn-page { width: auto; padding: 8px 16px; background: white; border: 1px solid #e5e7eb; color: #333; }
@@ -78,10 +83,6 @@ const html = `
     .modal-close { background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 0; margin: 0; width: auto; }
     .modal-body { padding: 0; overflow-y: auto; flex: 1; }
     
-    .qr-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
-    .qr-img { width: 200px; height: 200px; background: #eee; margin-bottom: 15px; }
-    .qr-tip { color: #666; font-size: 13px; margin-bottom: 10px; }
-
     .ip-row { cursor: pointer; transition: background 0.1s; } .ip-row:hover { background: #f9fafb; }
     .history-row { display: none; background: #fdfbf7; }
     .history-list { padding: 10px 20px; font-family: monospace; font-size: 12px; color: #666; max-height: 200px; overflow-y: auto; }
@@ -93,8 +94,9 @@ const html = `
         .container { padding: 10px; align-items: flex-start; }
         .card, .admin-card { padding: 20px 15px; border-radius: 12px; }
         .admin-header { flex-direction: column; align-items: stretch; gap: 15px; }
-        .header-left { flex-direction: column; align-items: flex-start; gap: 10px; }
-        .search-box { max-width: 100%; }
+        .header-left { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+        .search-box { width: 100%; max-width: 100%; }
+        .filter-select { flex: 1; min-width: 80px; }
         thead { display: none; }
         .stats-table thead { display: table-header-group !important; }
         #linkTable, #linkTable tbody, #linkTable tr, #linkTable td { display: block; width: 100%; }
@@ -110,7 +112,6 @@ const html = `
         #linkTable td:nth-child(6) { padding: 12px 0 0 0; border-top: 1px dashed #e5e7eb; }
         .action-btns { justify-content: flex-start; gap: 8px; }
         .action-btns button { flex: 1 1 30%; padding: 8px 0; font-size: 13px; margin: 0; min-width: 60px; }
-        .admin-header { margin-bottom: 15px; }
         .stats-table th, .stats-table td { font-size: 12px; padding: 8px 5px; }
     }
   </style>
@@ -140,9 +141,17 @@ const html = `
       <div class="admin-card">
         <div class="admin-header">
           <div class="header-left">
-            <h2 style="margin:0; font-size:18px;">📊 链接管理</h2>
+            <h2 style="margin:0; font-size:18px; margin-right:10px;">📊 管理</h2>
+            <select id="filterYear" class="filter-select" onchange="loadPage(0)"></select>
+            <select id="filterMonth" class="filter-select" onchange="loadPage(0)">
+                <option value="">全部月份</option>
+                <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+                <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+                <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+                <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+            </select>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="搜索备注或链接..." onkeypress="handleSearch(event)">
+                <input type="text" id="searchInput" placeholder="搜索备注/链接..." onkeypress="handleSearch(event)">
                 <span class="search-icon">🔍</span>
             </div>
           </div>
@@ -158,8 +167,8 @@ const html = `
               <th>原始链接</th>
               <th style="width:150px">备注</th>
               <th style="width:100px" class="sortable sort-active" onclick="toggleSort('time')" id="th-time">创建时间 <span class="sort-icon">⬇</span></th>
-              <th style="width:70px; text-align:center;" class="sortable" onclick="toggleSort('visits')" id="th-visits">访问次数 <span class="sort-icon"></span></th>
-              <th style="width:280px; text-align:right;">操作</th>
+              <th style="width:70px; text-align:center;" class="sortable" onclick="toggleSort('visits')" id="th-visits">次数 <span class="sort-icon"></span></th>
+              <th style="width:240px; text-align:right;">操作</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -199,24 +208,23 @@ const html = `
     </div>
   </div>
 
-  <div id="qrModal" class="modal-overlay" onclick="closeModal('qrModal', event)">
-    <div class="modal-content" style="max-width:300px;" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h3>二维码</h3>
-        <button class="modal-close" onclick="closeModal('qrModal')">×</button>
-      </div>
-      <div class="modal-body qr-container">
-        <img id="qrImage" class="qr-img" src="" />
-        <div class="qr-tip" id="qrText"></div>
-        <button onclick="closeModal('qrModal')" class="btn-black btn-xs" style="width:100%">关闭</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     const path = window.location.pathname;
     if (path === '/admin') { document.getElementById('homeView').style.display = 'none'; document.getElementById('adminView').style.display = 'flex'; setTimeout(checkLogin, 50); }
     function escapeHtml(unsafe) { if (typeof unsafe !== 'string') return unsafe; return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+    
+    // 初始化日期下拉框
+    function initDateFilters() {
+        const yearSelect = document.getElementById('filterYear');
+        const currentYear = new Date().getFullYear();
+        let options = '<option value="">所有年份</option>';
+        for(let y = currentYear; y >= 2024; y--) { 
+            options += \`<option value="\${y}">\${y}年</option>\`;
+        }
+        yearSelect.innerHTML = options;
+    }
+    initDateFilters();
+
     async function generate() {
       const urlInput = document.getElementById('longUrl').value.trim(); const btn = document.getElementById('btn'); const errorDiv = document.getElementById('error'); const resultDiv = document.getElementById('result');
       if (!urlInput) return; 
@@ -265,8 +273,13 @@ const html = `
       tbody.innerHTML = ''; loading.style.display = 'block'; pagination.style.display = 'none';
       try {
         const offset = pageIndex * pageSize;
-        const q = encodeURIComponent(searchQuery);
-        const url = \`/api/admin/list?limit=\${pageSize}&offset=\${offset}&sort=\${sortState.field}&order=\${sortState.order}&q=\${q}&t=\${Date.now()}\`;
+        searchQuery = document.getElementById('searchInput').value.trim();
+        const year = document.getElementById('filterYear').value;
+        const month = document.getElementById('filterMonth').value;
+
+        // 构建请求URL
+        let url = \`/api/admin/list?limit=\${pageSize}&offset=\${offset}&sort=\${sortState.field}&order=\${sortState.order}&q=\${encodeURIComponent(searchQuery)}&year=\${year}&month=\${month}&t=\${Date.now()}\`;
+        
         const res = await fetch(url, { headers: getHeaders() });
         if (res.status === 401) { logout(); return alert('登录过期'); }
         const data = await res.json();
@@ -294,7 +307,6 @@ const html = `
           <td style="text-align:center;"><span class="visits-badge">\${item.visits}</span></td>
           <td>
             <div class="action-btns">
-              <button class="btn-dark btn-xs" onclick="showQr('\${escapeHtml(item.id)}')">📱 二维码</button>
               <button class="btn-emerald btn-xs" onclick="copyShortLink(this, '\${escapeHtml(item.id)}')">📄 复制</button>
               <button class="btn-purple btn-xs" onclick="editNote('\${escapeHtml(item.id)}')">📝 备注</button>
               <button class="btn-teal btn-xs" onclick="showStats('\${escapeHtml(item.id)}')">📉 统计</button>
@@ -308,14 +320,6 @@ const html = `
     }
     function copyShortLink(btn, id) { const shortUrl = window.location.origin + "/" + id; navigator.clipboard.writeText(shortUrl).then(() => { const originalText = btn.innerText; btn.innerText = "✅"; setTimeout(() => btn.innerText = originalText, 2000); }).catch(err => alert("复制失败")); }
     
-    function showQr(id) {
-        const shortUrl = window.location.origin + "/" + id;
-        const qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(shortUrl);
-        document.getElementById('qrImage').src = qrApi;
-        document.getElementById('qrText').innerText = shortUrl;
-        document.getElementById('qrModal').style.display = 'flex';
-    }
-
     async function showStats(id) {
         document.getElementById('statsModal').style.display = 'flex';
         document.getElementById('modalTitle').innerText = '访问详情: ' + id;
@@ -439,17 +443,35 @@ export default {
       const sort = url.searchParams.get("sort");
       const order = url.searchParams.get("order") === "asc" ? "ASC" : "DESC";
       const q = url.searchParams.get("q"); 
+      const year = parseInt(url.searchParams.get("year"));
+      const month = parseInt(url.searchParams.get("month"));
 
       let orderByClause = "ORDER BY l.created_at DESC";
       if (sort === "visits") { orderByClause = `ORDER BY visits ${order}`; } 
       else if (sort === "time") { orderByClause = `ORDER BY l.created_at ${order}`; }
 
-      let whereClause = "";
+      let conditions = [];
       let params = [];
-      if (q) {
-          whereClause = "WHERE (l.note LIKE ? OR l.url LIKE ?)";
-          params = [`%${q}%`, `%${q}%`];
+
+      if (q && q !== "null" && q !== "") {
+          conditions.push("(l.note LIKE ? OR l.url LIKE ?)");
+          params.push(`%${q}%`, `%${q}%`);
       }
+
+      if (year) {
+          let startTs, endTs;
+          if (month) {
+              startTs = new Date(year, month - 1, 1).getTime();
+              endTs = new Date(year, month, 1).getTime();
+          } else {
+              startTs = new Date(year, 0, 1).getTime();
+              endTs = new Date(year + 1, 0, 1).getTime();
+          }
+          conditions.push("l.created_at >= ? AND l.created_at < ?");
+          params.push(startTs, endTs);
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
       params.push(limit, offset);
 
       const query = `
@@ -490,7 +512,6 @@ export default {
       const shortId = path.substring(1);
       const link = await env.DB.prepare('SELECT url FROM links WHERE id = ?').bind(shortId).first();
       if (link) { 
-          // 异步写入日志
           ctx.waitUntil((async () => {
               const ip = request.headers.get("CF-Connecting-IP") || "Unknown";
               const now = Date.now();
